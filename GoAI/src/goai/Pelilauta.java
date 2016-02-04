@@ -59,7 +59,28 @@ public class Pelilauta {
      * n:s y-koordinaatti paikalla 2*n+1
      */
     public int[] annaVapaatPisteet() {
+        int pos = 0;
+        int[] taulu = new int[2*koko*koko];
         
-        return null;
+        for (int i = 0; i<koko; i++) {
+            for (int j = 0; j<koko; j++) {
+                if (this.lautaTaulu[i][j] == TYHJA) {
+                    taulu[pos] = i;
+                    taulu[pos+1] = j;
+                    pos++;
+                }
+            }
+        }
+        int[] palautusTaulu = new int[2*pos];
+        System.arraycopy(taulu, 0, palautusTaulu, 0, 2*pos);
+        return palautusTaulu;
+    }
+
+    public int getKoko() {
+        return koko;
+    }
+
+    public int getPelaaja() {
+        return pelaaja;
     }
 }

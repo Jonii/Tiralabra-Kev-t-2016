@@ -18,6 +18,8 @@ import static org.junit.Assert.*;
  */
 public class NodeTest {
     
+    Node node;
+    
     public NodeTest() {
     }
     
@@ -31,6 +33,9 @@ public class NodeTest {
     
     @Before
     public void setUp() {
+        node = new Node();
+        node.lauta = new Pelilauta();
+        
     }
     
     @After
@@ -38,9 +43,19 @@ public class NodeTest {
     }
 
     @Test
-    public void testSomeMethod() {
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+    public void testUpdateStats() {
+        node.updateStats(1.0);
+        assertEquals(node.vierailut, 1);
+        assertEquals(node.voitot, 1);
+        node.updateStats(0.0);
+        assertEquals(node.vierailut, 2);
+        assertEquals(node.voitot, 1);
+    }
+    @Test
+    public void testSelectAction() {
+        node.selectAction();
+        assertNotNull("Expand ei toimi", node.children[0]);
+        assertEquals("Update ei toimi", node.vierailut, 1);
     }
     
 }

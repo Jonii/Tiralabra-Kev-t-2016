@@ -1,15 +1,9 @@
-/** 
- * Hakupuun solmu.
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package goai;
 import java.util.LinkedList;
 import java.util.Random;
 
 /**
- *
+ * Hakupuun solmu.
  * @author jphanski
  */
 public class Node {
@@ -22,12 +16,28 @@ public class Node {
     
     Pelilauta lauta;
     
+    public void Node() {
+    }
+    public void Node(Pelilauta lauta) {
+        this.lauta = lauta;
+    }
+    
     public void selectAction() { 
         LinkedList<Node> visited = new LinkedList<>();
         visited.add(this);
         Node currentNode = this;
         
-        while (!currentNode.isLeaf()) 
+        while (!currentNode.isLeaf()) {
+            currentNode = currentNode.select();
+            visited.add(currentNode);
+        }
+        currentNode.expand();
+        Node newNode = currentNode.select();
+        visited.add(newNode);
+        double value = simulate(newNode);
+        for (Node node : visited) {
+            node.updateStats(value);
+        }
         return;
     }
     
@@ -60,13 +70,17 @@ public class Node {
         return;
     }
     
-    public void simulate() {
-        int length = lauta.annaVapaatPisteet().length;
+    public double simulate(Node node) {
+        int length = lauta.annaVapaatPisteet().length / 2;
         r.nextInt(length);
-        return;
+        return -1;
     }
 
-    private boolean isLeaf() {
+    protected boolean isLeaf() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    protected void updateStats(double value) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     

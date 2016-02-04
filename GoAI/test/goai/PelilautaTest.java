@@ -86,4 +86,19 @@ public class PelilautaTest {
         assertEquals(lauta.tarkistaRisteys(1, 2), lauta.TYHJA);
         assertEquals(lauta.tarkistaRisteys(2, 2), lauta.TYHJA);
     }
+    
+    @Test
+    public void testaaSaakoTyhjatRisteykset() {
+        assertEquals(onkoRisteysTaulukossa(lauta.annaVapaatPisteet(), 16, 12), true);
+        lauta.pelaaSiirto(16, 12);
+        assertEquals(onkoRisteysTaulukossa(lauta.annaVapaatPisteet(), 16, 12), false);
+        
+
+    }
+    private boolean onkoRisteysTaulukossa(int[] array, int x, int y) {
+        for (int i = 1; i<array.length; i+=2) {
+            if ((array[i] == x) && (array[i+1] == y)) return true;
+        }
+        return false;
+    }
 }
