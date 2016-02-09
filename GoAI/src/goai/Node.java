@@ -18,6 +18,7 @@ public class Node {
     
     public void Node() {
     }
+    
     public void Node(Pelilauta lauta) {
         this.lauta = lauta;
     }

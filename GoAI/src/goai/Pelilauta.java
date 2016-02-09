@@ -39,7 +39,7 @@ public class Pelilauta {
     }
     
     /** Pelaa laudalle siirron.
-     * pelaamalla koordinaatteihin -1, -1, pelaaja passaa.
+     * 
      */
     public void pelaaSiirto(int x, int y) {
         //if (onkoLaillinenSiirto)
@@ -48,6 +48,32 @@ public class Pelilauta {
         else pelaaja = MUSTA;
         return;
     }
+    /**
+     * Passaa.
+     * @param x
+     * @param y 
+     */
+    public void passaa(int x, int y) {
+        return;
+    }
+    
+    /** Laittaa kiven laudalle. Ei salli laittomia siirtoja
+     * 
+     * @param x
+     * @param y
+     * @param pelaaja puolen numeerinen id, käytä pelilaudan vakioita MUSTA
+     * ja VALKEA
+     */
+    public void laitaKivi(int x, int y, int pelaaja) {
+        return;
+    }
+    
+    /**
+     * 
+     * @param x
+     * @param y
+     * @return pelaaja jonka kivi on risteyksessä, tai 0 mikäli risteys on tyhjä
+     */
     
     public int tarkistaRisteys(int x, int y) {
         return lautaTaulu[x][y];
