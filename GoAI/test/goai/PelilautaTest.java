@@ -37,68 +37,18 @@ public class PelilautaTest {
     @After
     public void tearDown() {
     }
+  
+    @Test
+    public void testaaToimiikoKoordinaattimuunnokset() {
+         int x = 7;
+         int y = 10;
+         assertEquals(7, lauta.transformToXCoordinate(lauta.transformToSimpleCoordinates(x, y)));
+         assertEquals(10, lauta.transformToYCoordinate(lauta.transformToSimpleCoordinates(x, y)));
+         
+         int simple = 120;
+         x = lauta.transformToXCoordinate(simple);
+         y = lauta.transformToYCoordinate(simple);
+         assertEquals(120, lauta.transformToSimpleCoordinates(x, y));
+    }
 
-    @Test
-    public void testaaPelataLaudalle() {
-        lauta.pelaaSiirto(1, 1);
-        assertEquals(lauta.tarkistaRisteys(1, 1), lauta.MUSTA);
-        assertEquals(lauta.tarkistaRisteys(0, 0), lauta.TYHJA);
-    }
-    
-    @Test
-    public void testaaVaihtuukoVarit() {
-        lauta.pelaaSiirto(0, 0);
-        lauta.pelaaSiirto(0, 1);
-        lauta.pelaaSiirto(0, 2);
-        assertEquals(lauta.tarkistaRisteys(0, 1), lauta.VALKEA);
-        assertEquals(lauta.tarkistaRisteys(0, 2), lauta.MUSTA);
-    }
-    
-    @Test
-    public void testaaPassata() {
-        lauta.pelaaSiirto(-1, -1);
-        
-        for (int i = 0; i<19; i++) {
-            for (int j = 0; j<19; j++) {
-                assertEquals(lauta.tarkistaRisteys(i, j), lauta.TYHJA);
-            }           
-        }
-    }
-    
-    @Test
-    public void testaaNapataRyhma() {
-        lauta.pelaaSiirto(1, 1);
-        lauta.pelaaSiirto(1, 2);
-        
-        lauta.pelaaSiirto(1, 3);
-        lauta.pelaaSiirto(2, 2);
-        
-        lauta.pelaaSiirto(0, 2);
-        lauta.pelaaSiirto(10, 10);
-        
-        lauta.pelaaSiirto(2, 1);
-        lauta.pelaaSiirto(10, 11);
-        
-        lauta.pelaaSiirto(2, 3);
-        lauta.pelaaSiirto(10, 12);
-        
-        lauta.pelaaSiirto(3, 2);
-        assertEquals(lauta.tarkistaRisteys(1, 2), lauta.TYHJA);
-        assertEquals(lauta.tarkistaRisteys(2, 2), lauta.TYHJA);
-    }
-    
-    @Test
-    public void testaaSaakoTyhjatRisteykset() {
-        assertEquals(onkoRisteysTaulukossa(lauta.annaVapaatPisteet(), 16, 12), true);
-        lauta.pelaaSiirto(16, 12);
-        assertEquals(onkoRisteysTaulukossa(lauta.annaVapaatPisteet(), 16, 12), false);
-        
-
-    }
-    private boolean onkoRisteysTaulukossa(int[] array, int x, int y) {
-        for (int i = 1; i<array.length; i+=2) {
-            if ((array[i] == x) && (array[i+1] == y)) return true;
-        }
-        return false;
-    }
 }

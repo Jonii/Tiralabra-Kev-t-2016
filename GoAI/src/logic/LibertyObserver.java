@@ -4,11 +4,11 @@
  * and open the template in the editor.
  */
 package logic;
-
+import goai.Pelilauta;
 /**
  *
  * @author jphanski
  */
 public class LibertyObserver {
-    
+    private Pelilauta lauta;
 }

@@ -8,13 +8,11 @@ import java.util.Random;
  */
 public class Node {
     Node[] children;
-    
+    Pelilauta lauta;
     static Random r = new Random();
     static double epsilon = 1e-6;
     
     int vierailut, voitot;
-    
-    Pelilauta lauta;
     
     public void Node() {
     }
@@ -72,7 +70,7 @@ public class Node {
     }
     
     public double simulate(Node node) {
-        int length = lauta.annaVapaatPisteet().length / 2;
+        int length = lauta.getVapaatPisteet().length / 2;
         r.nextInt(length);
         return -1;
     }
