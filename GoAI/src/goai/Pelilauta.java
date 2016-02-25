@@ -39,14 +39,15 @@ public class Pelilauta {
         return;
     }
     
-    /**
-     * 
+    /** Palauttaa laudan risteyksen sisällön.
+     *  Mikäli risteys on epäkelpo, palauttaa TYHJA
      * @param x
      * @param y
-     * @return pelaaja jonka kivi on risteyksessä, tai 0 mikäli risteys on tyhjä
+     * @return pelaaja jonka kivi on risteyksessä, tai TYHJA. Jos risteys ei ole laudalla, palauttaa TYHJA
      */
     
     public int getRisteys(int x, int y) {
+        if ((x < 0) || (x >= koko) || (y < 0) || (y >= koko)) return TYHJA;
         return lautaTaulu[x][y];
     }
     
@@ -72,7 +73,10 @@ public class Pelilauta {
         System.arraycopy(taulu, 0, palautusTaulu, 0, 2*pos);
         return palautusTaulu;
     }
-
+    /**
+     * Palauttaa laudan koon. Lauta on aina neliö, yleensä 5x5, 7x7, 9x9, 13x13 tai 19x19
+     * @return laudan sivus pituus.
+     */
     public int getKoko() {
         return koko;
     }
@@ -95,10 +99,18 @@ public class Pelilauta {
         pelaaja = Pelilauta.MUSTA;
     }
     
+    /**
+     * Palauttaa sen pelaajan koodin jonka senhetkinen vuoro on.
+     * @return MUSTA tai VALKEA
+     */
     public int getTurn() {
         return pelaaja;
     }
     
+    /**
+     * Muuttaa sen, kenen vuoro on siirtää seuraavaksi, koskematta laudan tilanteeseen.
+     * @param pelaaja 
+     */
     public void setTurn(int pelaaja) {
         if (pelaaja == MUSTA) this.pelaaja = pelaaja;
         if (pelaaja == VALKEA) this.pelaaja = pelaaja;

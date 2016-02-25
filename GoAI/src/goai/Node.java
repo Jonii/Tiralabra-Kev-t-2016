@@ -33,10 +33,10 @@ public class Node {
         currentNode.expand();
         Node newNode = currentNode.select();
         visited.add(newNode);
-        double value = simulate(newNode);
-        for (Node node : visited) {
-            node.updateStats(value);
-        }
+        //Simulation phase
+        //for (Node node : visited) {
+        //    node.updateStats(value);
+        //}
         return;
     }
     
@@ -66,17 +66,25 @@ public class Node {
     }
     
     public void expand() {
+        //select random points for now?
+        int pisteita = 6;
+        int p;
+        int[] lapsitaulu = new int[6];
+        int[] vapaatpisteet = lauta.getVapaatPisteet();
+        for (int i = 0; i<pisteita; i++) {
+            do {
+                p = r.nextInt(vapaatpisteet.length);
+            } while (vapaatpisteet[p] == -1);
+            lapsitaulu[i] = vapaatpisteet[p];
+            vapaatpisteet[p] = -1;
+        }
         return;
     }
     
-    public double simulate(Node node) {
-        int length = lauta.getVapaatPisteet().length / 2;
-        r.nextInt(length);
-        return -1;
-    }
-
     protected boolean isLeaf() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        if (children == null) return true;
+        if (children.length == 0) throw new IllegalStateException("Malformed search tree?"); 
+        return false;
     }
 
     protected void updateStats(double value) {

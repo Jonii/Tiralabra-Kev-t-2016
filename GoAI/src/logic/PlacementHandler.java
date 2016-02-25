@@ -15,6 +15,10 @@ import static goai.Pelilauta.VALKEA;
 public class PlacementHandler {
     private Pelilauta lauta;
     private int koko;
+
+    public PlacementHandler(Pelilauta lauta) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
     
     public boolean onkoLaillinenSiirto(int x, int y) {
         if ((x < 0) || (x>=koko) || (y < 0) || (y >= koko)) return false;
