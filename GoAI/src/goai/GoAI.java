@@ -4,13 +4,17 @@
  * and open the template in the editor.
  */
 package goai;
-
+import goai.Node;
+import goai.Pelilauta;
+import logic.PlacementHandler;
 /**
  *
  * @author jphanski
  */
 public class GoAI {
-
+    Node root;
+    Pelilauta lauta;
+    PlacementHandler handler;
     /**
      * @param args the command line arguments
      */

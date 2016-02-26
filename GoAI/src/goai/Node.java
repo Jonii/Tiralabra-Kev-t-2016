@@ -34,9 +34,7 @@ public class Node {
         Node newNode = currentNode.select();
         visited.add(newNode);
         //Simulation phase
-        //for (Node node : visited) {
-        //    node.updateStats(value);
-        //}
+        //Update phase
         return;
     }
     

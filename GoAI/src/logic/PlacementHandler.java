@@ -5,6 +5,7 @@
  */
 package logic;
 import goai.Pelilauta;
+import logic.LibertyObserver;
 import static goai.Pelilauta.MUSTA;
 import static goai.Pelilauta.VALKEA;
 
@@ -25,9 +26,9 @@ public class PlacementHandler {
         return false;
     }
     
-        /** Pelaa laudalle siirron.
-     * 
-     */
+    /** Pelaa laudalle siirron.
+    * 
+    */
     public void pelaaSiirto(int x, int y) {
         final int pelaaja = lauta.getTurn();
         //if (onkoLaillinenSiirto)
