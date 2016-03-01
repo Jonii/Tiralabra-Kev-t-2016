@@ -46,15 +46,6 @@ public class Pelilauta {
     }
     
     /** Palauttaa laudan risteyksen sisällön.
-     *  Mikäli risteys o sen valmiiks sinne maaliskuun puoliväliin mennessä tai joskus niihin aikoihin?
-10:06:16 <Jonii> Emt, mää kaipaisin pientä sellasta... Mä kirjotin nyt aika kiireessä ja kuumeessa hurjan määrän koodia, tosi vähän testejä mut mulla nyt olis sellane 
-                 hyvä fiilis et tästä ehkä kuitenki tulee jotain, mut jos pystyisit katsomaa tota mun koodia hiukan että olenko menossa jossai kohtaa iha täysillä puuta 
-                 päin vai eteneeks kaikki ihan ok näkösest?
-10:06:39 <osyn> joo voin kattoo, voi tosin mennä maanantaille
-10:06:53 <Jonii> Toi koodikatselmointi oli hyödylline, kopioin ton rakenteen idean melkee suoraa koodikatselmoinnista :D
-10:06:59 <osyn> noni hyvä:D
-10:07:07 <osyn> siitä tais olla useemmalleki hyötyä
-10:07:17 <Jonii> Piti kirjottaa about kan epäkelpo, palauttaa TYHJA
      * @param x
      * @param y
      * @return pelaaja jonka kivi on risteyksessä, tai TYHJA. Jos risteys ei ole laudalla, palauttaa TYHJA
