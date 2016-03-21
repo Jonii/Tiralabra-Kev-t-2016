@@ -73,6 +73,12 @@ public class Pelilauta {
      * @param pelaaja puolen numeerinen id, käytä pelilaudan vakioita MUSTA ja
      * VALKEA
      */
+    public int getVapaus(int x, int y) {
+        return lautaTaulu[x][y].getVapaudet();
+    }
+    public void setVapaus(int x, int y, int vapaus) {
+        lautaTaulu[x][y].setVapaudet(vapaus);
+    }
     public void setRisteys(int x, int y, int pelaaja) {
         lautaTaulu[x][y].setKivi(pelaaja);
     }

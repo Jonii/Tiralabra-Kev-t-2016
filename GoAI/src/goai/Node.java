@@ -100,7 +100,7 @@ public class Node {
      * mutta tietty on parempi mitä useampia simulaatioita on keretty ajaa.
      * @return 
      */
-    int annaValinta() {
+    Node annaValinta() {
         int highest = 0;
         int highestIndex = 0;
         for (int i = 0; i<children.length; i++) {
@@ -109,7 +109,7 @@ public class Node {
                 highestIndex = i;
             }
         }
-        return lauta.transformToSimpleCoordinates(children[highestIndex].x, children[highestIndex].y);
+        return children[highestIndex];
     }
     
 }

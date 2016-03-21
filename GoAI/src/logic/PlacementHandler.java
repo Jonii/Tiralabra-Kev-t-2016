@@ -33,6 +33,8 @@ public class PlacementHandler {
         final int pelaaja = lauta.getTurn();
         //if (onkoLaillinenSiirto)
         lauta.setRisteys(x, y, pelaaja);
+        int[] visited = new int[koko * koko];
+        
         lauta.changeTurn();
     }
 }

@@ -33,14 +33,15 @@ public class GoAI {
             x = reader.nextInt();
             y = reader.nextInt();
             handler.pelaaSiirto(x, y);
+            root = new Node(lauta, x, y);
             
             pelaaSiirtoKoneelle();
         }
     }
     
     public static void piirraLauta() {
-        for (int i = 0; i<19; i++) {
-            for (int j = 0; j<19; j++) {
+        for (int j = 18; j>-1; j--) {
+            for (int i = 0; i<19; i++) {
                 if (lauta.getRisteys(i, j) == Pelilauta.MUSTA) {
                     System.out.print(" X ");
                 }
@@ -58,13 +59,14 @@ public class GoAI {
         while (System.nanoTime() < now + 2000000000) {
             root.selectAction();
         }
-        int simple, x, y;
-        simple = root.annaValinta();
+        int x, y;
+        Node uusiNode = root.annaValinta();
         
-        x = lauta.transformToXCoordinate(simple);
-        y = lauta.transformToYCoordinate(simple);
+        x = uusiNode.x;
+        y = uusiNode.y;
         
         handler.pelaaSiirto(x,y);
+        root = uusiNode;
     }
     
 }
