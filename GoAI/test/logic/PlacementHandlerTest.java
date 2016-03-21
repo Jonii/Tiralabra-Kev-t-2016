@@ -11,18 +11,21 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import static org.junit.Assert.*;
+import goai.Pelilauta;
 
 /**
  *
  * @author jphanski
  */
 public class PlacementHandlerTest {
+    static PlacementHandler handler;
     
     public PlacementHandlerTest() {
     }
     
     @BeforeClass
     public static void setUpClass() {
+        handler = new PlacementHandler(new Pelilauta());
     }
     
     @AfterClass
@@ -45,7 +48,7 @@ public class PlacementHandlerTest {
         System.out.println("onkoLaillinenSiirto");
         int x = 0;
         int y = 0;
-        PlacementHandler instance = new PlacementHandler();
+        PlacementHandler instance = handler;
         boolean expResult = false;
         boolean result = instance.onkoLaillinenSiirto(x, y);
         assertEquals(expResult, result);
@@ -61,7 +64,7 @@ public class PlacementHandlerTest {
         System.out.println("pelaaSiirto");
         int x = 0;
         int y = 0;
-        PlacementHandler instance = new PlacementHandler();
+        PlacementHandler instance = handler;
         instance.pelaaSiirto(x, y);
         // TODO review the generated test code and remove the default call to fail.
         fail("The test case is a prototype.");

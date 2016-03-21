@@ -32,7 +32,7 @@ public class GoAI {
             piirraLauta();
             x = reader.nextInt();
             y = reader.nextInt();
-            handler.pelaaSiirto(x, y);
+            handler.pelaaSiirto(x-1, y-1);
             root = new Node(lauta, x, y);
             
             pelaaSiirtoKoneelle();
@@ -40,8 +40,8 @@ public class GoAI {
     }
     
     public static void piirraLauta() {
-        for (int j = 18; j>-1; j--) {
-            for (int i = 0; i<19; i++) {
+        for (int j = lauta.getKoko(); j>0; j--) {
+            for (int i = 1; i <= lauta.getKoko(); i++) {
                 if (lauta.getRisteys(i, j) == Pelilauta.MUSTA) {
                     System.out.print(" X ");
                 }
