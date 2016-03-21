@@ -5,7 +5,6 @@
  */
 package logic;
 import goai.Pelilauta;
-import logic.LibertyObserver;
 import static goai.Pelilauta.MUSTA;
 import static goai.Pelilauta.VALKEA;
 
@@ -18,7 +17,8 @@ public class PlacementHandler {
     private int koko;
 
     public PlacementHandler(Pelilauta lauta) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        this.lauta = lauta;
+        this.koko = this.lauta.getKoko();
     }
     
     public boolean onkoLaillinenSiirto(int x, int y) {

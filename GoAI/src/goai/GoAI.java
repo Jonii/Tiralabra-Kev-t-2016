@@ -12,14 +12,27 @@ import logic.PlacementHandler;
  * @author jphanski
  */
 public class GoAI {
-    Node root;
-    Pelilauta lauta;
-    PlacementHandler handler;
+    static Node root;
+    static Pelilauta lauta;
+    static PlacementHandler handler;
     /**
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        // TODO code application logic here
+        lauta = new Pelilauta();
+        root = new Node(lauta);
+    }
+    
+    public static void piirraLauta() {
+        for (int i = 0; i<19; i++) {
+            for (int j = 0; j<19; j++) {
+                if (lauta.getRisteys(i, j) == Pelilauta.MUSTA) {
+                    System.out.print(" X ");
+                }
+                else System.out.print(" O "); 
+            }
+            System.out.println();
+        }
     }
     
 }

@@ -11,75 +11,108 @@ import java.util.Arrays;
  *
  * @author jphanski
  */
+class Alkio {
+
+    private int kivi;
+    private int vapaudet;
+
+    public int getKivi() {
+        return kivi;
+    }
+
+    public void setKivi(int kivi) {
+        this.kivi = kivi;
+    }
+
+    public int getVapaudet() {
+        return vapaudet;
+    }
+
+    public void setVapaudet(int vapaudet) {
+        this.vapaudet = vapaudet;
+    }
+    
+    
+}
+
 public class Pelilauta {
+
     public static final int MUSTA = 1;
     public static final int VALKEA = 2;
     public static final int TYHJA = 0;
     final int koko;
-    int[][] lautaTaulu;
+    Alkio[][] lautaTaulu;
     int pelaaja;
-    
+
     public Pelilauta() {
         koko = 19;
-        lautaTaulu = new int[koko][koko];
+        lautaTaulu = new Alkio[koko][koko];
         pelaaja = MUSTA;
     }
-    
-    public Pelilauta(int koko, int[][] valmisTaulu, int pelaaja) {
+
+    /*public Pelilauta(int koko, int[][] valmisTaulu, int pelaaja) {
         this.koko = koko;
         this.lautaTaulu = valmisTaulu;
         this.pelaaja = pelaaja;
-}
+    }*/
 
-    
-
-    
-    /** Laittaa kiven laudalle. Sallii minkä tahansa siirron
-     * 
+    /**
+     * Laittaa kiven laudalle. Sallii minkä tahansa siirron
+     *
      * @param x
      * @param y
-     * @param pelaaja puolen numeerinen id, käytä pelilaudan vakioita MUSTA
-     * ja VALKEA
+     * @param pelaaja puolen numeerinen id, käytä pelilaudan vakioita MUSTA ja
+     * VALKEA
      */
     public void setRisteys(int x, int y, int pelaaja) {
         return;
     }
-    
-    /** Palauttaa laudan risteyksen sisällön.
+
+    /**
+     * Palauttaa laudan risteyksen sisällön.
+     *
      * @param x
      * @param y
-     * @return pelaaja jonka kivi on risteyksessä, tai TYHJA. Jos risteys ei ole laudalla, palauttaa TYHJA
+     * @return pelaaja jonka kivi on risteyksessä, tai TYHJA. Jos risteys ei ole
+     * laudalla, palauttaa TYHJA
      */
-    
     public int getRisteys(int x, int y) {
-        if ((x < 0) || (x >= koko) || (y < 0) || (y >= koko)) return TYHJA;
-        return lautaTaulu[x][y];
+        if ((x < 0) || (x >= koko) || (y < 0) || (y >= koko)) {
+            return TYHJA;
+        }
+        return lautaTaulu[x][y].getKivi();
     }
-    
+
     /**
      * Palauttaa listattuna laudan tyhjät risteykset.
+     *
      * @return Tyhjät risteykset listattuna simple-formaattia käyttäen. Käytä
      * transformToXCoordinate ja transformToYCoordinate() funktioita.
      */
     public int[] getVapaatPisteet() {
         int pos = 0;
-        int[] taulu = new int[koko*koko];
-        
-        for (int i = 0; i<koko; i++) {
-            for (int j = 0; j<koko; j++) {
-                if (this.lautaTaulu[i][j] == TYHJA) {
+        int[] taulu = new int[koko * koko];
+
+        for (int i = 0; i < koko; i++) {
+            for (int j = 0; j < koko; j++) {
+                if (this.lautaTaulu[i][j].getKivi() == TYHJA) {
                     taulu[pos] = transformToSimpleCoordinates(i, j);
                     pos++;
                 }
             }
         }
-        if (pos == 0) return null;
+        if (pos == 0) {
+            return null;
+        }
         int[] palautusTaulu = new int[pos];
-        System.arraycopy(taulu, 0, palautusTaulu, 0, 2*pos);
+        System.arraycopy(taulu, 0, palautusTaulu, 0, 2 * pos);
         return palautusTaulu;
     }
+
     /**
-     * Palauttaa laudan koon. Lauta on aina neliö, yleensä 5x5, 7x7, 9x9, 13x13 tai 19x19
+     * Palauttaa laudan koon. Lauta on aina neliö, yleensä 5x5, 7x7, 9x9, 13x13
+     * tai 19x19
+     *
      * @return laudan sivus pituus.
      */
     public int getKoko() {
@@ -88,9 +121,9 @@ public class Pelilauta {
 
     public int[][] getArray() {
         int[][] palautus = new int[koko][koko];
-        for (int i = 0; i<koko; i++) {
-            for (int j = 0; j<koko; j++) {
-                palautus[i][j] = this.lautaTaulu[i][j];
+        for (int i = 0; i < koko; i++) {
+            for (int j = 0; j < koko; j++) {
+                palautus[i][j] = this.lautaTaulu[i][j].getKivi();
             }
         }
         return palautus;
@@ -103,30 +136,39 @@ public class Pelilauta {
         }
         pelaaja = Pelilauta.MUSTA;
     }
-    
+
     /**
      * Palauttaa sen pelaajan koodin jonka senhetkinen vuoro on.
+     *
      * @return MUSTA tai VALKEA
      */
     public int getTurn() {
         return pelaaja;
     }
-    
+
     /**
-     * Muuttaa sen, kenen vuoro on siirtää seuraavaksi, koskematta laudan tilanteeseen.
-     * @param pelaaja 
+     * Muuttaa sen, kenen vuoro on siirtää seuraavaksi, koskematta laudan
+     * tilanteeseen.
+     *
+     * @param pelaaja
      */
     public void setTurn(int pelaaja) {
-        if (pelaaja == MUSTA) this.pelaaja = pelaaja;
-        if (pelaaja == VALKEA) this.pelaaja = pelaaja;
+        if (pelaaja == MUSTA) {
+            this.pelaaja = pelaaja;
+        }
+        if (pelaaja == VALKEA) {
+            this.pelaaja = pelaaja;
+        }
     }
-    
+
     public int transformToSimpleCoordinates(int x, int y) {
         return y + koko * x;
     }
+
     public int transformToXCoordinate(int simple) {
         return simple / koko;
     }
+
     public int transformToYCoordinate(int simple) {
         return simple % koko;
     }
