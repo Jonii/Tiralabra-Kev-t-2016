@@ -31,6 +31,10 @@ class Alkio {
     public void setVapaudet(int vapaudet) {
         this.vapaudet = vapaudet;
     }
+    Alkio() {
+        kivi = 0;
+        vapaudet = 0;
+    }
     
     
 }
@@ -47,6 +51,11 @@ public class Pelilauta {
     public Pelilauta() {
         koko = 19;
         lautaTaulu = new Alkio[koko][koko];
+        for (int i = 0; i<koko; i++) {
+            for (int j = 0; j < koko; j++) {
+                lautaTaulu[i][j] = new Alkio();
+            }
+        }
         pelaaja = MUSTA;
     }
 
@@ -65,7 +74,7 @@ public class Pelilauta {
      * VALKEA
      */
     public void setRisteys(int x, int y, int pelaaja) {
-        return;
+        lautaTaulu[x][y].setKivi(pelaaja);
     }
 
     /**
@@ -105,7 +114,7 @@ public class Pelilauta {
             return null;
         }
         int[] palautusTaulu = new int[pos];
-        System.arraycopy(taulu, 0, palautusTaulu, 0, 2 * pos);
+        System.arraycopy(taulu, 0, palautusTaulu, 0, pos);
         return palautusTaulu;
     }
 
@@ -171,5 +180,9 @@ public class Pelilauta {
 
     public int transformToYCoordinate(int simple) {
         return simple % koko;
+    }
+
+    boolean sensible(int i) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }

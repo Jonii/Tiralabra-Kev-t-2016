@@ -6,6 +6,7 @@
 package goai;
 import goai.Node;
 import goai.Pelilauta;
+import java.util.Scanner;
 import logic.PlacementHandler;
 /**
  *
@@ -21,6 +22,20 @@ public class GoAI {
     public static void main(String[] args) {
         lauta = new Pelilauta();
         root = new Node(lauta);
+        handler = new PlacementHandler(lauta);
+        Scanner reader = new Scanner(System.in);
+        
+        int x;
+        int y;
+        
+        while (true) {
+            piirraLauta();
+            x = reader.nextInt();
+            y = reader.nextInt();
+            handler.pelaaSiirto(x, y);
+            
+            pelaaSiirtoKoneelle();
+        }
     }
     
     public static void piirraLauta() {
@@ -29,10 +44,27 @@ public class GoAI {
                 if (lauta.getRisteys(i, j) == Pelilauta.MUSTA) {
                     System.out.print(" X ");
                 }
-                else System.out.print(" O "); 
+                else if (lauta.getRisteys(i, j) == Pelilauta.VALKEA) {
+                    System.out.print(" O "); 
+                }
+                else System.out.print(" . ");
             }
             System.out.println();
         }
+    }
+
+    private static void pelaaSiirtoKoneelle() {
+        long now = System.nanoTime();
+        while (System.nanoTime() < now + 2000000000) {
+            root.selectAction();
+        }
+        int simple, x, y;
+        simple = root.annaValinta();
+        
+        x = lauta.transformToXCoordinate(simple);
+        y = lauta.transformToYCoordinate(simple);
+        
+        handler.pelaaSiirto(x,y);
     }
     
 }

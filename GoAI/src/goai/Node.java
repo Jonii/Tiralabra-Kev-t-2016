@@ -12,6 +12,8 @@ public class Node {
     static Random r = new Random();
     static double epsilon = 1e-6;
     
+    int x, y;
+    
     int vierailut, voitot;
     
     public void Node() {
@@ -19,6 +21,11 @@ public class Node {
     
     public Node(Pelilauta lauta) {
         this.lauta = lauta;
+    }
+    public Node(Pelilauta lauta, int x, int y) {
+        this.lauta = lauta;
+        this.x = x;
+        this.y = y;
     }
     
     public void selectAction() { 
@@ -65,18 +72,18 @@ public class Node {
     
     public void expand() {
         //select random points for now?
-        int pisteita = 6;
+        int pisteita = 20;
         int p;
-        int[] lapsitaulu = new int[6];
         int[] vapaatpisteet = lauta.getVapaatPisteet();
+        if (vapaatpisteet.length < pisteita) pisteita = vapaatpisteet.length;
+        children = new Node[pisteita];
         for (int i = 0; i<pisteita; i++) {
             do {
                 p = r.nextInt(vapaatpisteet.length);
             } while (vapaatpisteet[p] == -1);
-            lapsitaulu[i] = vapaatpisteet[p];
+            children[i] = new Node(lauta, lauta.transformToXCoordinate(vapaatpisteet[p]), lauta.transformToYCoordinate(vapaatpisteet[p]));
             vapaatpisteet[p] = -1;
         }
-        return;
     }
     
     protected boolean isLeaf() {
@@ -87,6 +94,22 @@ public class Node {
 
     protected void updateStats(double value) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+    /**
+     * Annetaan eniten vierailtu solmu siirron pelaamista varten. Tämän funktion voi ajaa koska tahansa
+     * mutta tietty on parempi mitä useampia simulaatioita on keretty ajaa.
+     * @return 
+     */
+    int annaValinta() {
+        int highest = 0;
+        int highestIndex = 0;
+        for (int i = 0; i<children.length; i++) {
+            if (children[i].vierailut > highest) {
+                highest = children[i].vierailut;
+                highestIndex = i;
+            }
+        }
+        return lauta.transformToSimpleCoordinates(children[highestIndex].x, children[highestIndex].y);
     }
     
 }
