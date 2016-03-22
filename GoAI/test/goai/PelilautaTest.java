@@ -63,6 +63,8 @@ public class PelilautaTest {
         assertEquals(lauta.transformToSimpleCoordinates(7, 3), lauta.moveUp(lauta.transformToSimpleCoordinates(6, 3)));
         assertNotEquals(-1, lauta.moveRight(lauta.transformToSimpleCoordinates(0, 0)));
         assertNotEquals(-1, lauta.moveUp(lauta.transformToSimpleCoordinates(0, 0)));
+        assertEquals(-1, lauta.moveDown(lauta.transformToSimpleCoordinates(0, 0)));
+        assertEquals(-1, lauta.moveLeft(lauta.transformToSimpleCoordinates(0, 0)));
     }
 
 }

@@ -27,8 +27,6 @@ public class PlacementHandlerTest {
     
     @BeforeClass
     public static void setUpClass() {
-        lauta = new Pelilauta();
-        handler = new PlacementHandler(lauta);
     }
     
     @AfterClass
@@ -37,6 +35,8 @@ public class PlacementHandlerTest {
     
     @Before
     public void setUp() {
+        lauta = new Pelilauta();
+        handler = new PlacementHandler(lauta);
     }
     
     @After
@@ -48,15 +48,19 @@ public class PlacementHandlerTest {
      */
     @Test
     public void testOnkoLaillinenSiirto() {
-        System.out.println("onkoLaillinenSiirto");
-        int x = 0;
-        int y = 0;
-        PlacementHandler instance = handler;
-        boolean expResult = false;
-        boolean result = instance.onkoLaillinenSiirto(x, y);
-        assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        assertEquals(true, handler.onkoLaillinenSiirto(0, 0));
+        assertEquals(true, handler.onkoLaillinenSiirto(18, 18));
+        handler.pelaaSiirto(0, 0);
+        assertEquals(false, handler.onkoLaillinenSiirto(0, 0));
+        assertEquals(false, handler.onkoLaillinenSiirto(-1, 0));
+        assertEquals(false, handler.onkoLaillinenSiirto(0, 19));
+        handler.pelaaSiirto(1, 0);
+        handler.pelaaSiirto(1, 1);
+        handler.pelaaSiirto(0, 1);
+        assertEquals(false, handler.onkoLaillinenSiirto(0, 0));
+        handler.pelaaSiirto(2, 0);
+        handler.pelaaSiirto(10, 10);
+        assertEquals(true, handler.onkoLaillinenSiirto(0, 0));
     }
 
     /**
@@ -64,23 +68,30 @@ public class PlacementHandlerTest {
      */
     @Test
     public void testPelaaSiirto() {
-        System.out.println("pelaaSiirto");
-        int x = 0;
-        int y = 0;
-        PlacementHandler instance = handler;
-        instance.pelaaSiirto(x, y);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        assertEquals(Pelilauta.TYHJA, lauta.getRisteys(0, 0));
+        handler.pelaaSiirto(0, 0);
+        assertEquals(Pelilauta.MUSTA, lauta.getRisteys(0, 0));
+        handler.pelaaSiirto(1, 0);
+        assertEquals(Pelilauta.VALKEA, lauta.getRisteys(1, 0));
+        handler.pelaaSiirto(2, 0);
+        assertEquals(Pelilauta.MUSTA, lauta.getRisteys(2, 0));
     }
     
     @Test
     public void testLaskeVapaudet() {
         handler.pelaaSiirto(0, 0);
+        handler.pelaaSiirto(18, 18);
         handler.pelaaSiirto(5, 5);
         assertEquals(4, lauta.getVapaus(5, 5));
-        assertEquals(2, lauta.getVapaus(0, 0));
+        assertEquals(2, lauta.getVapaus(18, 18));     
+        assertEquals(2, lauta.getVapaus(0, 0));    
+        handler.pelaaSiirto(15, 15);
         handler.pelaaSiirto(1, 0);
         assertEquals(3, lauta.getVapaus(0, 0));
+        handler.pelaaSiirto(2, 0);
+        assertEquals(2, lauta.getVapaus(2, 0));        
+        assertEquals(2, lauta.getVapaus(1, 0));
+        assertEquals(2, lauta.getVapaus(0, 0));
     }
     
     @Test

@@ -25,10 +25,100 @@ public class PlacementHandler {
     }
 
     public boolean onkoLaillinenSiirto(int x, int y) {
+        final int pelaaja = lauta.getTurn();
+        
         if ((x < 0) || (x >= koko) || (y < 0) || (y >= koko)) {
             return false;
         }
-        return false;
+        if (lauta.getRisteys(x, y) != Pelilauta.TYHJA) return false;
+        
+        //vapauksien tarkistus. otetaanKivia tarkistaa saadaanko vapauksia ottamalla laudalta kiviä.
+        //vapauksia tarkistaa onko vierellä tyhjiä risteyksiä tai yhteys ryhmiin joilla on vapauksia
+        boolean otetaanKivia = false;
+        boolean vapauksia = false;
+        
+        int uusiX = x - 1;
+        int uusiY = y;
+        if (lauta.getRisteys(uusiX, uusiY) != pelaaja && lauta.getRisteys(uusiX, uusiY) != Pelilauta.TYHJA) {
+            if (lauta.getVapaus(uusiX, uusiY) == 1) {
+                otetaanKivia = true;
+            }
+        }
+        else if (lauta.getRisteys(uusiX, uusiY) == pelaaja) {
+            if (lauta.getVapaus(uusiX, uusiY) > 1) {
+                vapauksia = true;
+            }
+        }
+        else if (lauta.getRisteys(uusiX, uusiY) == Pelilauta.TYHJA) {
+            if ((uusiX < 0) || (uusiX >= koko) || (uusiY < 0) || (uusiY >= koko)) {
+                
+            }
+            else vapauksia = true;
+        }
+        
+        
+        uusiX = x + 1;
+        uusiY = y;
+        if (lauta.getRisteys(uusiX, uusiY) != pelaaja && lauta.getRisteys(uusiX, uusiY) != Pelilauta.TYHJA) {
+            if (lauta.getVapaus(uusiX, uusiY) == 1) {
+                otetaanKivia = true;   
+            }
+        }
+        else if (lauta.getRisteys(uusiX, uusiY) == pelaaja) {
+            if (lauta.getVapaus(uusiX, uusiY) > 1) {
+                vapauksia = true;
+            }
+        }
+        else if (lauta.getRisteys(uusiX, uusiY) == Pelilauta.TYHJA) {
+            if ((uusiX < 0) || (uusiX >= koko) || (uusiY < 0) || (uusiY >= koko)) {
+                
+            }
+            else vapauksia = true;
+        }
+        
+        
+        uusiX = x;
+        uusiY = y + 1;
+        if (lauta.getRisteys(uusiX, uusiY) != pelaaja && lauta.getRisteys(uusiX, uusiY) != Pelilauta.TYHJA) {
+            if (lauta.getVapaus(uusiX, uusiY) == 1) {
+                otetaanKivia = true;
+            }
+        }
+        else if (lauta.getRisteys(uusiX, uusiY) == pelaaja) {
+            if (lauta.getVapaus(uusiX, uusiY) > 1) {
+                vapauksia = true;
+            }
+        }
+        else if (lauta.getRisteys(uusiX, uusiY) == Pelilauta.TYHJA) {
+            if ((uusiX < 0) || (uusiX >= koko) || (uusiY < 0) || (uusiY >= koko)) {
+                
+            }
+            else vapauksia = true;
+        }
+        
+        
+        uusiX = x;
+        uusiY = y - 1;
+        if (lauta.getRisteys(uusiX, uusiY) != pelaaja && lauta.getRisteys(uusiX, uusiY) != Pelilauta.TYHJA) {
+            if (lauta.getVapaus(uusiX, uusiY) == 1) {
+                otetaanKivia = true;
+            }
+        }
+        else if (lauta.getRisteys(uusiX, uusiY) == pelaaja) {
+            if (lauta.getVapaus(uusiX, uusiY) > 1) {
+                vapauksia = true;
+            }
+        }
+        else if (lauta.getRisteys(uusiX, uusiY) == Pelilauta.TYHJA) {
+            if ((uusiX < 0) || (uusiX >= koko) || (uusiY < 0) || (uusiY >= koko)) {
+                
+            }
+            else vapauksia = true;
+        }
+        
+        if (!vapauksia && !otetaanKivia) return false;
+        
+        return true;
     }
 
     /**
@@ -38,8 +128,11 @@ public class PlacementHandler {
     public void pelaaSiirto(int x, int y) {
         final int pelaaja = lauta.getTurn();
         int uusiX, uusiY;
-
-        //tarkista ko;
+        if (!onkoLaillinenSiirto(x, y)) {
+            lauta.changeTurn();
+            return;
+        }
+        
         uusiX = x - 1;
         uusiY = y;
         if (lauta.getRisteys(uusiX, uusiY) != pelaaja && lauta.getRisteys(uusiX, uusiY) != Pelilauta.TYHJA) {
@@ -71,6 +164,20 @@ public class PlacementHandler {
 
         lauta.setRisteys(x, y, pelaaja);
         laskeVapaudet(x, y);
+        
+        uusiX = x;
+        uusiY = y+1;
+        if (lauta.getRisteys(uusiX, uusiY) != Pelilauta.TYHJA) laskeVapaudet(uusiX, uusiY);
+        uusiX = x;
+        uusiY = y-1;
+        if (lauta.getRisteys(uusiX, uusiY) != Pelilauta.TYHJA) laskeVapaudet(uusiX, uusiY);
+        uusiX = x+1;
+        uusiY = y;
+        if (lauta.getRisteys(uusiX, uusiY) != Pelilauta.TYHJA) laskeVapaudet(uusiX, uusiY);
+        uusiX = x-1;
+        uusiY = y;
+        if (lauta.getRisteys(uusiX, uusiY) != Pelilauta.TYHJA) laskeVapaudet(uusiX, uusiY);
+        
         lauta.changeTurn();
     }
 
@@ -104,8 +211,7 @@ public class PlacementHandler {
             if (lauta.getRisteys(currentX, currentY) == pelaaja) {
                 kiviKetju.add(current);
 
-                //y-akselilla siirtyminen simple-koordinaatistossa on koko-parametrin ynnäystä,
-                //kun taas x-akselilla siirtyminen on ykkösen ynnäystä. Rumaa mutta toimii.
+                //-1 meinaa että siirtymä ei ollut mahdollinen
                 uusiSimple = lauta.moveLeft(current);
                 if (uusiSimple != -1) {
                     pino.add(uusiSimple);
