@@ -14,8 +14,8 @@ import java.util.Arrays;
 class Alkio {
 
     private int kivi;
-    private int vapaudet;
-
+    private int vapaudet;    
+    
     public int getKivi() {
         return kivi;
     }
@@ -44,9 +44,10 @@ public class Pelilauta {
     public static final int MUSTA = 1;
     public static final int VALKEA = 2;
     public static final int TYHJA = 0;
-    final int koko;
+    private final int koko;
     Alkio[][] lautaTaulu;
-    int pelaaja;
+    private int pelaaja;
+    private boolean passedOnLastMove;
 
     public Pelilauta() {
         koko = 19;
@@ -57,6 +58,15 @@ public class Pelilauta {
             }
         }
         pelaaja = MUSTA;
+        passedOnLastMove = false;
+    }
+
+    public boolean isPassedOnLastMove() {
+        return passedOnLastMove;
+    }
+
+    public void setPassedOnLastMove(boolean passedOnLastMove) {
+        this.passedOnLastMove = passedOnLastMove;
     }
 
     /*public Pelilauta(int koko, int[][] valmisTaulu, int pelaaja) {
@@ -71,6 +81,9 @@ public class Pelilauta {
      * @param x koordinaatti 9 - koko-1
      * @param y koordinaattii 0 - koko-1
      */
+    
+    
+    
     public int getVapaus(int x, int y) {
         return lautaTaulu[x][y].getVapaudet();
     }

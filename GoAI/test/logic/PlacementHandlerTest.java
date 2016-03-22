@@ -103,4 +103,17 @@ public class PlacementHandlerTest {
         assertEquals(3, lauta.getVapaus(1, 0));
         assertEquals(3, lauta.getVapaus(0, 1));
     }
+    
+    @Test
+    public void testSilmanTuhoamisenHuomaaminen() {
+        handler.pelaaSiirto(1, 0); //                                    ______
+        handler.pelaaSiirto(0, 0); //                                   | x
+        handler.pelaaSiirto(0, 1); //                                   |xx
+        handler.pelaaSiirto(3, 3); //                                   |
+        assertEquals(false, handler.tuhoaakoSiirtoOmanSilman(0, 0)); // |    o
+        handler.pelaaSiirto(1, 1);
+        assertEquals(false, handler.tuhoaakoSiirtoOmanSilman(0, 0));
+        handler.pass();
+        assertEquals(true, handler.tuhoaakoSiirtoOmanSilman(0, 0));
+    }
 }

@@ -23,7 +23,12 @@ public class PlacementHandler {
         this.lauta = lauta;
         this.koko = this.lauta.getKoko();
     }
-
+    
+    public void pass() {
+        lauta.setPassedOnLastMove(true);
+        lauta.changeTurn();
+    }
+    
     public boolean onkoLaillinenSiirto(int x, int y) {
         final int pelaaja = lauta.getTurn();
         
@@ -292,5 +297,88 @@ public class PlacementHandler {
             }
 
         }
+    }
+    
+    public boolean tuhoaakoSiirtoOmanSilman(int x, int y) {
+        final int pelaaja = lauta.getTurn();
+        
+        //tarkistetaan onko risteys ympäröity omanvärisillä kivillä
+        if 
+                ((lauta.getRisteys(x-1, y) != pelaaja && x > 0) || 
+                (lauta.getRisteys(x+1, y) != pelaaja && x < lauta.getKoko()-1) || 
+                (lauta.getRisteys(x, y-1) != pelaaja && y > 0) || 
+                (lauta.getRisteys(x, y+1) != pelaaja && y < lauta.getKoko()-1)) {
+            return false;
+        }
+        
+        //risteys ympäröity, eli täytyy tarkistaa ovatko kaikki kivet yhdistetty
+        //tätä varten jonkinlainen haku pitkin kiviketjun kiviä. Jokaiselle kohdatulle
+        //ympäröivälle kivelle oma boolean. Tämä ei huomaa tiettyjä patologisia silmiä,
+        //mutta tuolle ei nyt voi mitään
+        boolean eka = false;
+        boolean toka = false;
+        boolean kolmas = false;
+        boolean neljas = false;
+        
+        Pino<Integer> pino = new Pino<>();
+
+        boolean[] visited = new boolean[koko * koko];
+
+        int uusiSimple;
+        
+        int currentX, currentY;
+        int current;
+        if (x > 0) current = lauta.transformToSimpleCoordinates(x-1, y);
+        else {
+            current = lauta.transformToSimpleCoordinates(x+1, y);
+        }
+        pino.add(current);
+
+        while (pino.IsNotEmpty()) {
+            current = pino.pop();
+            currentX = lauta.transformToXCoordinate(current);
+            currentY = lauta.transformToYCoordinate(current);
+            
+            if (visited[current]) {
+                continue;
+            }
+            visited[current] = true;
+
+            if (lauta.getRisteys(currentX, currentY) == pelaaja) {
+                
+                if (currentX == x-1 && currentY == y) {
+                    eka = true;
+                }
+                if (currentX == x+1 && currentY == y) {
+                    toka = true;
+                }
+                if (currentX == x && currentY == y-1) {
+                    kolmas = true;
+                }
+                if (currentX == x && currentY == y+1 ) {
+                    neljas = true;
+                }
+                
+                uusiSimple = lauta.moveLeft(current);
+                if (uusiSimple != -1) {
+                    pino.add(uusiSimple);
+                }
+                uusiSimple = lauta.moveRight(current);
+                if (uusiSimple != -1) {
+                    pino.add(uusiSimple);
+                }
+                uusiSimple = lauta.moveUp(current);
+                if (uusiSimple != -1) {
+                    pino.add(uusiSimple);
+                }
+                uusiSimple = lauta.moveDown(current);
+                if (uusiSimple != -1) {
+                    pino.add(uusiSimple);
+                }
+            }
+
+        }
+        
+        return (eka || x==0) && (toka || x==lauta.getKoko()-1) && (kolmas || y==0) && (neljas || y == lauta.getKoko()-1);
     }
 }

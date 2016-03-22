@@ -1,6 +1,8 @@
 package goai;
 import java.util.LinkedList;
 import java.util.Random;
+import logic.Pino;
+import logic.PlacementHandler;
 
 /**
  * Hakupuun solmu.
@@ -9,6 +11,7 @@ import java.util.Random;
 public class Node {
     Node[] children;
     Pelilauta lauta;
+    PlacementHandler handler;
     static Random r = new Random();
     static double epsilon = 1e-6;
     
@@ -17,21 +20,29 @@ public class Node {
     int vierailut, voitot;
     
     public Node() {
+        this(new Pelilauta());
     }
     
     public Node(Pelilauta lauta) {
         this.lauta = lauta;
+        this.handler = new PlacementHandler(lauta);
     }
     public Node(Pelilauta lauta, int x, int y) {
         this.lauta = lauta;
         this.x = x;
         this.y = y;
+        this.handler = new PlacementHandler(lauta);
+        if (handler.onkoLaillinenSiirto(x, y)) {
+            handler.pelaaSiirto(x, y);
+        }
+        else throw new IllegalStateException("laiton siirto hakupuussa");
     }
     
     public void selectAction() { 
-        LinkedList<Node> visited = new LinkedList<>();
+        Pino<Node> visited = new Pino<>();
         visited.add(this);
         Node currentNode = this;
+        int tulos;
         
         while (!currentNode.isLeaf()) {
             currentNode = currentNode.select();
@@ -40,7 +51,7 @@ public class Node {
         currentNode.expand();
         Node newNode = currentNode.select();
         visited.add(newNode);
-        //Simulation phase
+        tulos = currentNode.simulate();
         //Update phase
         return;
     }
@@ -111,5 +122,30 @@ public class Node {
         }
         return children[highestIndex];
     }
+
+    private int simulate() {
+        int[] vapaatpisteet;
+        int offset;
+        int x;
+        int y;
+        boolean noSensibleMovesLeft = false;
+        while(!noSensibleMovesLeft) {
+            vapaatpisteet = lauta.getVapaatPisteet();
+            offset = r.nextInt(vapaatpisteet.length);
+            for (int i = 0; i<vapaatpisteet.length; i++) {
+                x = lauta.transformToXCoordinate(vapaatpisteet[i+offset]);
+                y = lauta.transformToYCoordinate(vapaatpisteet[i+offset]);
+                if (!handler.tuhoaakoSiirtoOmanSilman(x, y)) {
+                    handler.pelaaSiirto(x, y);
+                    noSensibleMovesLeft = false;
+                    break;
+                }
+                noSensibleMovesLeft = true;
+            }
+            
+        }
+        //calculate score here
+        
+        return -2;}
     
 }
