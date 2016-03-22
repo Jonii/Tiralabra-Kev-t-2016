@@ -30,9 +30,9 @@ public class GoAI {
         
         while (true) {
             piirraLauta();
-            x = reader.nextInt();
-            y = reader.nextInt();
-            handler.pelaaSiirto(x-1, y-1);
+            x = reader.nextInt() - 1;
+            y = reader.nextInt() - 1;
+            handler.pelaaSiirto(x, y);
             root = new Node(lauta, x, y);
             
             pelaaSiirtoKoneelle();

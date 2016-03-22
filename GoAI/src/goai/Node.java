@@ -52,7 +52,15 @@ public class Node {
         Node newNode = currentNode.select();
         visited.add(newNode);
         tulos = currentNode.simulate();
-        //Update phase
+        
+        while (visited.IsNotEmpty()) {
+            currentNode = visited.pop();
+            currentNode.vierailut++;
+            if ((currentNode.lauta.getTurn() == Pelilauta.VALKEA && tulos > 0) || 
+                    (currentNode.lauta.getTurn() == Pelilauta.MUSTA && tulos < 0)) {
+                currentNode.voitot++;
+            }
+        }
         return;
     }
     
@@ -122,30 +130,47 @@ public class Node {
         }
         return children[highestIndex];
     }
-
+    
+    /**
+     * simuloi pelin. Pelaa sarjan 
+     * @return +1 jos musta voittaa, -1 jos valkea voittaa.
+     */
     private int simulate() {
+        Pelilauta simulateBoard = lauta.kopioi();
+        PlacementHandler simuhandler = new PlacementHandler(simulateBoard);
         int[] vapaatpisteet;
         int offset;
-        int x;
-        int y;
+        int x, y;
+        
         boolean noSensibleMovesLeft = false;
         while(!noSensibleMovesLeft) {
-            vapaatpisteet = lauta.getVapaatPisteet();
+            vapaatpisteet = simulateBoard.getVapaatPisteet();
             offset = r.nextInt(vapaatpisteet.length);
             for (int i = 0; i<vapaatpisteet.length; i++) {
-                x = lauta.transformToXCoordinate(vapaatpisteet[i+offset]);
-                y = lauta.transformToYCoordinate(vapaatpisteet[i+offset]);
-                if (!handler.tuhoaakoSiirtoOmanSilman(x, y)) {
-                    handler.pelaaSiirto(x, y);
+                x = simulateBoard.transformToXCoordinate(vapaatpisteet[(i+offset)%vapaatpisteet.length]);
+                y = simulateBoard.transformToYCoordinate(vapaatpisteet[(i+offset)%vapaatpisteet.length]);
+                if (!simuhandler.tuhoaakoSiirtoOmanSilman(x, y)) {
+                    simuhandler.pelaaSiirto(x, y);
                     noSensibleMovesLeft = false;
                     break;
                 }
-                noSensibleMovesLeft = true;
+                if (simulateBoard.isPassedOnLastMove()) {
+                    noSensibleMovesLeft = true;
+                }
+                
             }
-            
+            simuhandler.pass();
         }
-        //calculate score here
         
-        return -2;}
+        int pisteet = -7; // Tämä on komi, valkealle annettava etu.
+        int kivenvari;
+        for (int i = 0; i < simulateBoard.getKoko() * simulateBoard.getKoko(); i++) {
+            kivenvari = simulateBoard.getRisteys(simulateBoard.transformToXCoordinate(i), simulateBoard.transformToYCoordinate(i));
+            if (kivenvari == Pelilauta.MUSTA) pisteet++;
+            if (kivenvari == Pelilauta.VALKEA) pisteet--;
+        }
+        if (pisteet > 0) return 1;
+        return -1;
+    }
     
 }

@@ -50,7 +50,11 @@ public class Pelilauta {
     private boolean passedOnLastMove;
 
     public Pelilauta() {
-        koko = 19;
+        this(19);
+    }
+
+    private Pelilauta(int koko) {
+        this.koko = koko;
         lautaTaulu = new Alkio[koko][koko];
         for (int i = 0; i<koko; i++) {
             for (int j = 0; j < koko; j++) {
@@ -152,6 +156,20 @@ public class Pelilauta {
                 palautus[i][j] = this.lautaTaulu[i][j].getKivi();
             }
         }
+        return palautus;
+    }
+    public Pelilauta kopioi() {
+        Pelilauta palautus = new Pelilauta(getKoko());
+        Alkio uusi;
+        for (int i = 0; i<getKoko(); i++) {
+            for (int j = 0; j<getKoko(); j++) {
+                uusi = new Alkio();
+                uusi.setKivi(getRisteys(i, j));
+                uusi.setVapaudet(getVapaus(i, j));
+                palautus.lautaTaulu[i][j] = uusi;
+            }
+        }
+        if (getTurn() != Pelilauta.MUSTA) palautus.changeTurn();
         return palautus;
     }
 

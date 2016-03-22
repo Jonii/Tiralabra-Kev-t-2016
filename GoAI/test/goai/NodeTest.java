@@ -42,7 +42,7 @@ public class NodeTest {
     public void tearDown() {
     }
 
-    @Test
+    /*@Test
     public void testUpdateStats() {
         node.updateStats(1.0);
         assertEquals(node.vierailut, 1);
@@ -56,6 +56,6 @@ public class NodeTest {
         node.selectAction();
         assertNotNull("Expand ei toimi", node.children[0]);
         assertEquals("Update ei toimi", node.vierailut, 1);
-    }
+    }*/
     
 }
