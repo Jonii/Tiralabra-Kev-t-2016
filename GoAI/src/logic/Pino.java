@@ -48,4 +48,7 @@ public class Pino<T> {
         uusiAlkio.setNext(first);
         first = uusiAlkio;
     }
+    public boolean IsNotEmpty() {
+        return (first != null);
+    }
 }

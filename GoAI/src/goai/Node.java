@@ -16,7 +16,7 @@ public class Node {
     
     int vierailut, voitot;
     
-    public void Node() {
+    public Node() {
     }
     
     public Node(Pelilauta lauta) {

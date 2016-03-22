@@ -50,5 +50,19 @@ public class PelilautaTest {
          y = lauta.transformToYCoordinate(simple);
          assertEquals(120, lauta.transformToSimpleCoordinates(x, y));
     }
+    
+    @Test
+    public void testaaSiirtymat() {
+        assertEquals(-1, lauta.moveLeft(lauta.transformToSimpleCoordinates(5, 0)));
+        assertEquals(-1, lauta.moveRight(lauta.transformToSimpleCoordinates(12, 18)));
+        assertEquals(-1, lauta.moveUp(lauta.transformToSimpleCoordinates(18, 2)));
+        assertEquals(-1, lauta.moveDown(lauta.transformToSimpleCoordinates(0, 16)));
+        assertEquals(lauta.transformToSimpleCoordinates(6, 2), lauta.moveLeft(lauta.transformToSimpleCoordinates(6, 3)));
+        assertEquals(lauta.transformToSimpleCoordinates(6, 4), lauta.moveRight(lauta.transformToSimpleCoordinates(6, 3)));
+        assertEquals(lauta.transformToSimpleCoordinates(5, 3), lauta.moveDown(lauta.transformToSimpleCoordinates(6, 3)));
+        assertEquals(lauta.transformToSimpleCoordinates(7, 3), lauta.moveUp(lauta.transformToSimpleCoordinates(6, 3)));
+        assertNotEquals(-1, lauta.moveRight(lauta.transformToSimpleCoordinates(0, 0)));
+        assertNotEquals(-1, lauta.moveUp(lauta.transformToSimpleCoordinates(0, 0)));
+    }
 
 }

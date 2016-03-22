@@ -19,13 +19,16 @@ import goai.Pelilauta;
  */
 public class PlacementHandlerTest {
     static PlacementHandler handler;
+    static Pelilauta lauta;
+    
     
     public PlacementHandlerTest() {
     }
     
     @BeforeClass
     public static void setUpClass() {
-        handler = new PlacementHandler(new Pelilauta());
+        lauta = new Pelilauta();
+        handler = new PlacementHandler(lauta);
     }
     
     @AfterClass
@@ -70,4 +73,23 @@ public class PlacementHandlerTest {
         fail("The test case is a prototype.");
     }
     
+    @Test
+    public void testLaskeVapaudet() {
+        handler.pelaaSiirto(0, 0);
+        handler.pelaaSiirto(5, 5);
+        assertEquals(4, lauta.getVapaus(5, 5));
+        assertEquals(2, lauta.getVapaus(0, 0));
+        handler.pelaaSiirto(1, 0);
+        assertEquals(3, lauta.getVapaus(0, 0));
+    }
+    
+    @Test
+    public void testPoistaKivet() {
+        handler.pelaaSiirto(1, 0);
+        handler.pelaaSiirto(0, 0);
+        handler.pelaaSiirto(0, 1);
+        assertEquals(Pelilauta.TYHJA, lauta.getRisteys(0, 0));
+        assertEquals(3, lauta.getVapaus(1, 0));
+        assertEquals(3, lauta.getVapaus(0, 1));
+    }
 }

@@ -66,12 +66,10 @@ public class Pelilauta {
     }*/
 
     /**
-     * Laittaa kiven laudalle. Sallii minkä tahansa siirron
-     *
-     * @param x
-     * @param y
-     * @param pelaaja puolen numeerinen id, käytä pelilaudan vakioita MUSTA ja
-     * VALKEA
+     * Antaa kivijonon vapaudet. Voi olla suurempi kuin 4, pienimmillään 0. Toiminta ei määriteltyä jos risteyksessä ei kiveä.
+     * 
+     * @param x koordinaatti 9 - koko-1
+     * @param y koordinaattii 0 - koko-1
      */
     public int getVapaus(int x, int y) {
         return lautaTaulu[x][y].getVapaudet();
@@ -177,6 +175,7 @@ public class Pelilauta {
     }
 
     public int transformToSimpleCoordinates(int x, int y) {
+        if (x < 0 || x >= koko || y < 0 || y >= koko) return -1;
         return y + koko * x;
     }
 
@@ -190,5 +189,25 @@ public class Pelilauta {
 
     boolean sensible(int i) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+    public int moveLeft(int simple) {
+        int palautus = simple - 1;
+        if (palautus % this.getKoko() < this.getKoko() -1) return palautus;
+        return -1;
+    }
+    public int moveRight(int simple) {
+        int palautus = simple + 1;
+        if (palautus % this.getKoko() > 0) return palautus;
+        return -1;
+    }
+    public int moveUp(int simple) {
+        int palautus = simple + this.getKoko();
+        if (palautus < this.getKoko() * this.getKoko()) return palautus;
+        return -1;
+    }
+    public int moveDown(int simple) {
+        int palautus = simple - this.getKoko();
+        if (palautus >= 0) return palautus;
+        return -1;
     }
 }
