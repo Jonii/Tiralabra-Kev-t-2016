@@ -22,9 +22,14 @@ public class GoAI {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        lauta = new Pelilauta(5);
-        handler = new PlacementHandler(lauta);
+        System.out.print("Anna laudan koko: ");
         Scanner reader = new Scanner(System.in);
+        
+        lauta = new Pelilauta(reader.nextInt());
+        System.out.println("");
+        
+        handler = new PlacementHandler(lauta);
+        
         
         int x;
         int y;
@@ -51,6 +56,9 @@ public class GoAI {
     
     public static void piirraLauta() {
         for (int j = lauta.getKoko()-1; j>=0; j--) {
+            System.out.format("%2d", (j+1));
+            System.out.print("|");
+            
             for (int i = 0; i < lauta.getKoko(); i++) {
                 if (lauta.getRisteys(i, j) == Pelilauta.MUSTA) {
                     System.out.print(" X ");
@@ -61,12 +69,17 @@ public class GoAI {
                 else System.out.print(" . ");
             }
             
-            for (int i = 0; i < lauta.getKoko(); i++) {                 //aputaulu diagnostiikkaa varten
-                System.out.format("(%5d) ", apulauta[i][j]);
-            }
-            
+            //for (int i = 0; i < lauta.getKoko(); i++) {                 //aputaulu diagnostiikkaa varten
+            //    System.out.format("(%5d) ", apulauta[i][j]);
+            //}
+            // 
             System.out.println();
         }
+        System.out.print("   ");
+        for (int i = 0; i<lauta.getKoko(); i++) {
+            System.out.format("%2d ", (i+1));
+        }
+        System.out.print("\nAnna seuraava siirto: ");
     }
 
     private static Node pelaaSiirtoKoneelle() {
