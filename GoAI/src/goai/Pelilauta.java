@@ -53,7 +53,7 @@ public class Pelilauta {
         this(19);
     }
 
-    private Pelilauta(int koko) {
+    public Pelilauta(int koko) {
         this.koko = koko;
         lautaTaulu = new Alkio[koko][koko];
         for (int i = 0; i<koko; i++) {

@@ -13,15 +13,14 @@ import logic.PlacementHandler;
  * @author jphanski
  */
 public class GoAI {
-    static Node root;
     static Pelilauta lauta;
     static PlacementHandler handler;
+    static int simulaatioita;
     /**
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        lauta = new Pelilauta();
-        root = new Node(lauta);
+        lauta = new Pelilauta(9);
         handler = new PlacementHandler(lauta);
         Scanner reader = new Scanner(System.in);
         
@@ -29,19 +28,20 @@ public class GoAI {
         int y;
         
         while (true) {
+            simulaatioita = 0;
             piirraLauta();
             x = reader.nextInt() - 1;
             y = reader.nextInt() - 1;
             handler.pelaaSiirto(x, y);
-            root = new Node(lauta, x, y);
             
             pelaaSiirtoKoneelle();
+            System.out.println("Suoritettu " + simulaatioita + "simulaatiota");
         }
     }
     
     public static void piirraLauta() {
-        for (int j = lauta.getKoko(); j>0; j--) {
-            for (int i = 1; i <= lauta.getKoko(); i++) {
+        for (int j = lauta.getKoko()-1; j>=0; j--) {
+            for (int i = 0; i < lauta.getKoko(); i++) {
                 if (lauta.getRisteys(i, j) == Pelilauta.MUSTA) {
                     System.out.print(" X ");
                 }
@@ -55,9 +55,11 @@ public class GoAI {
     }
 
     private static void pelaaSiirtoKoneelle() {
+        Node root = new Node(lauta);
         long now = System.nanoTime();
         while (System.nanoTime() < now + 2000000000) {
             root.selectAction();
+            simulaatioita++;
         }
         int x, y;
         Node uusiNode = root.annaValinta();
@@ -66,7 +68,6 @@ public class GoAI {
         y = uusiNode.y;
         
         handler.pelaaSiirto(x,y);
-        root = uusiNode;
     }
     
 }

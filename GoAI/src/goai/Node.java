@@ -24,14 +24,14 @@ public class Node {
     }
     
     public Node(Pelilauta lauta) {
-        this.lauta = lauta;
-        this.handler = new PlacementHandler(lauta);
+        this.lauta = lauta.kopioi();
+        this.handler = new PlacementHandler(this.lauta);
     }
     public Node(Pelilauta lauta, int x, int y) {
-        this.lauta = lauta;
+        this.lauta = lauta.kopioi();
         this.x = x;
         this.y = y;
-        this.handler = new PlacementHandler(lauta);
+        this.handler = new PlacementHandler(this.lauta);
         if (handler.onkoLaillinenSiirto(x, y)) {
             handler.pelaaSiirto(x, y);
         }
@@ -99,7 +99,7 @@ public class Node {
         for (int i = 0; i<pisteita; i++) {
             do {
                 p = r.nextInt(vapaatpisteet.length);
-            } while (vapaatpisteet[p] == -1);
+            } while (vapaatpisteet[p] == -1 || handler.onkoLaillinenSiirto(x, y));
             children[i] = new Node(lauta, lauta.transformToXCoordinate(vapaatpisteet[p]), lauta.transformToYCoordinate(vapaatpisteet[p]));
             vapaatpisteet[p] = -1;
         }
@@ -111,9 +111,7 @@ public class Node {
         return false;
     }
 
-    protected void updateStats(double value) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
+
     /**
      * Annetaan eniten vierailtu solmu siirron pelaamista varten. Tämän funktion voi ajaa koska tahansa
      * mutta tietty on parempi mitä useampia simulaatioita on keretty ajaa.
