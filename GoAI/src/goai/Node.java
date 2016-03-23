@@ -51,7 +51,10 @@ public class Node {
             throw new IllegalStateException("laiton siirto hakupuussa");
         }
     }
-
+    /**
+     * Yrittää parhaalta vaikuttavaa siirtoa, simuloi siitä edespäin pelin loppuun saakka,
+     * ja päivittää jokaisen MC-puun solmun matkan varrella tällä tuloksella.
+     */
     public void selectAction() {
         if (isScoreable()) return;
         Pino<Node> visited = new Pino<>();
@@ -84,7 +87,9 @@ public class Node {
     /**
      * UCT valinta.
      *
-     * Kuulemma ei käytännöllinen, mutta kokeillaan..
+     * Kuulemma ei käytännöllinen, mutta kokeillaan.. Suorittaa valinnan
+     * omista lapsista, mikä niistä vaikuttaa lupaavimmalta. Käyttää UCT-metodia,
+     * joka ei sisällä mitään go-spesifiä logiikkaa
      *
      * @return paras node, UCT politiikalla
      */
@@ -107,7 +112,11 @@ public class Node {
         // System.out.println("Returning: " + selected);
         return selected;
     }
-
+    
+    /**
+     * Päättää mitä siirtoja tästä nodesta eteenpäin ylipäätään tullaan harkitsemaan.
+     * Tämänhetkinen versio ottaa satunnaisesti 20 pistettä.
+     */
     public void expand() {
         //select random points for now?
         if (scoreable) {
@@ -213,7 +222,7 @@ public class Node {
             if (!loytyiSiirto) simuhandler.pass();
         }
 
-        int pisteet = 0; // Alkuarvo on komi, valkealle annettava etu.
+        double pisteet = -1 * lauta.getKomi(); // Alkuarvo on komi, valkealle annettava etu.
         int kivenvari;
         for (int i = 0; i < simulateBoard.getKoko() * simulateBoard.getKoko(); i++) {
             kivenvari = simulateBoard.getRisteys(simulateBoard.transformToXCoordinate(i), simulateBoard.transformToYCoordinate(i));
