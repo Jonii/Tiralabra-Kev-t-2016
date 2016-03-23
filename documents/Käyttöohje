@@ -1,0 +1,1 @@
+Anna siirron koordinaatit(välillä 1 - laudan koko), x-koordinaatti ensin, pelataksesi siirron. Botti vastaa omalla siirrollaan. Botti pelaa aina valkoista, pelaaja aina mustaa. Musta = X, valkea = O.

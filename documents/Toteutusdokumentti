@@ -1,0 +1,24 @@
+Toteutusdokumentti
+
+Ohjelmassa GoAI luokka toteuttaa kevyttä käyttöliittymää ja suorittaa muutaman sekunnin ajan Monte Carlo simulaatioita, ja valitsee parhaan siirron. Node-luokka hoitaa kaiken Monte-carlo spesifin, selectaction() metodi päivittää puun rakenteen itse, ja ajaa simulaation, ja päivittää tuloksen, ja kyseinen luokka osaa kertoa koska tahansa mikä siirto vaikuttaa parhaalta. Pelilauta-luokka on vain pelilauta jolla on tai ei ole kiviä. Pelilauta-luokkaa varten tarvitaan logiikkaa joka tulee PlacementHandler-luokasta, jonka kautta kivien laitto laudalle tapahtuu.
+
+Siirron laillisuuden ratkaiseminen vaatii tapahtuu ajassa O(1) ja tilassa O(1)
+
+Vapauksien laskeminen vaatii aikaa O(n) ja tilaa O(n), jossa n on ryhmän kivien määrä.
+
+Kivien nappaaminen laudalta vaatii pahimmillaan O(n^n) ajan, jossa n on ryhmän koko. Tämä koska jokaisen ympäröivän ryhmän vapaustilanne pitää päivittää. Tätä en pidä ongelmana koska suurten ryhmien nappaaminen tapahtuu melko harvoin, ja tällöinkin pahin mahdollinen skenaario on melko epätodennäköinen. Pienten ryhmien kohdalla aika on O(m), jossa m on lähellä olevien vastustajan ryhmien koko, ja eristettyjen ryhmien kohdalla aika on O(n). Ajan saisi pudotettua O(n) kohdalle jos logiikkaa parantelisi jotta saman vihollisryhmän vapauksia ei laskettaisi useasti.
+
+Siirron pelaaminen vaatii pahimmassa tapauksessa yhtä paljon aikaa kuin kivien syöminen. Useimmiten O(1) aikaa ja tilaa. Toisaalta hyvin usein myös miltei O(k^2) aikaa ja tilaa. Keskimäärin luultavasti O(k^2) aikaa ja tilaa.
+
+Siirron valitsemisessa ja simulaation ajamisessa menee aikaa O(k^2 * p) jossa p on siirron pelaamisen vaativuus. Tilavaatimus on O(k^2)
+
+Siirron valitseminen vaatii yhden simulaation vaatiman ajan, kertaa simulaatioiden lukumäärän. Tilavaatimus on O(k^2 * simulaatioiden lukumäärä * haaraumafaktori(20 tässä)). Tätäkin voisi karsia.
+
+Parannusehdotuksia.
+PlacementHandler-luokka olisi voinut olla yleinen, static-luokka kaikesta riippumattomana. Nyt Nodet tarvitsevat jokainen oman laudan ja oman PlacementHandlerin näille laudoille. Samalla myös Nodet eivät ehkä tarvitsisi omaa lautaa laisinkaan. Nämä muunnokset säästäisivät luultavasti huomattavasti aikaa.
+
+Lähteet:
+
+https://en.wikipedia.org/wiki/Monte_Carlo_tree_search
+https://jeffbradberry.com/posts/2015/09/intro-to-monte-carlo-tree-search/
+http://mcts.ai/code/java.html
