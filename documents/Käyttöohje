@@ -4,6 +4,6 @@ Netbeansissa valites Clean and Build. GoAI-kansiossa tulisi nyt olla dist-kansio
 	> java -jar GoAI.jar
 Anna laudan koko ensimmäiseksi, jonka jälkeen syötä haluttuja koordinaatteja.
 
-Suositeltava laudan koko on välillä 5-19. 19 on tällä hetkellä botille kovin vaikeaa ja pelit kestävät kauan. 9x9 peleissä botti on aika vahva. Nopeita debug-pelejä varten 5x5 on aivan tarpeeksi.
+Suositeltava laudan koko on välillä 5-19. 19 on tällä hetkellä botille kovin vaikeaa ja pelit kestävät kauan. 7x7 peleissä botti on aika vahva. Nopeita debug-pelejä varten 5x5 on aivan tarpeeksi. Yleensä pelilaudan leveys on pariton luku, yleisimmät koot ovat 9x9, 13x13 ja 19x19. 9x9 pelit saattavat kuitenkin olla vielä liian vaikeita botilleni.
 
 Anna siirron koordinaatit(välillä 1 - laudan koko), x-koordinaatti ensin, pelataksesi siirron. Botti vastaa omalla siirrollaan. Botti pelaa aina valkoista, pelaaja aina mustaa. Musta = X, valkea = O.
