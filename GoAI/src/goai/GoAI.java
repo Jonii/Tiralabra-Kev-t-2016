@@ -16,26 +16,36 @@ public class GoAI {
     static Pelilauta lauta;
     static PlacementHandler handler;
     static int simulaatioita;
+    static Node diagnostiikkaNode;
+    static int[][] apulauta;
     /**
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        lauta = new Pelilauta(9);
+        lauta = new Pelilauta(5);
         handler = new PlacementHandler(lauta);
         Scanner reader = new Scanner(System.in);
         
         int x;
         int y;
+        apulauta = new int[lauta.getKoko()][lauta.getKoko()];
         
         while (true) {
             simulaatioita = 0;
+            
             piirraLauta();
             x = reader.nextInt() - 1;
             y = reader.nextInt() - 1;
             handler.pelaaSiirto(x, y);
             
-            pelaaSiirtoKoneelle();
-            System.out.println("Suoritettu " + simulaatioita + "simulaatiota");
+            diagnostiikkaNode = pelaaSiirtoKoneelle();
+            apulauta = new int[lauta.getKoko()][lauta.getKoko()];
+            for (int i = 0; i<diagnostiikkaNode.children.length; i++) {
+                x = diagnostiikkaNode.children[i].x;
+                y = diagnostiikkaNode.children[i].y;
+                apulauta[x][y] = diagnostiikkaNode.children[i].voitot;
+            }
+            System.out.println("Suoritettu " + simulaatioita + " simulaatiota");
         }
     }
     
@@ -50,11 +60,16 @@ public class GoAI {
                 }
                 else System.out.print(" . ");
             }
+            
+            for (int i = 0; i < lauta.getKoko(); i++) {                 //aputaulu diagnostiikkaa varten
+                System.out.format("(%5d) ", apulauta[i][j]);
+            }
+            
             System.out.println();
         }
     }
 
-    private static void pelaaSiirtoKoneelle() {
+    private static Node pelaaSiirtoKoneelle() {
         Node root = new Node(lauta);
         long now = System.nanoTime();
         while (System.nanoTime() < now + 2000000000) {
@@ -68,6 +83,8 @@ public class GoAI {
         y = uusiNode.y;
         
         handler.pelaaSiirto(x,y);
+        
+        return root;
     }
     
 }

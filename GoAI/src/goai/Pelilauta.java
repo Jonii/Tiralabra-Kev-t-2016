@@ -48,6 +48,8 @@ public class Pelilauta {
     Alkio[][] lautaTaulu;
     private int pelaaja;
     private boolean passedOnLastMove;
+    
+    private int moveNumber;
 
     public Pelilauta() {
         this(19);
@@ -63,6 +65,14 @@ public class Pelilauta {
         }
         pelaaja = MUSTA;
         passedOnLastMove = false;
+    }
+
+    public int getMoveNumber() {
+        return moveNumber;
+    }
+
+    public void setMoveNumber(int moveNumber) {
+        this.moveNumber = moveNumber;
     }
 
     public boolean isPassedOnLastMove() {
@@ -241,4 +251,5 @@ public class Pelilauta {
         if (palautus >= 0) return palautus;
         return -1;
     }
+
 }

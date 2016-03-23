@@ -27,6 +27,7 @@ public class PlacementHandler {
     public void pass() {
         lauta.setPassedOnLastMove(true);
         lauta.changeTurn();
+        lauta.setMoveNumber(lauta.getMoveNumber() + 1);
     }
     
     public boolean onkoLaillinenSiirto(int x, int y) {
@@ -131,6 +132,7 @@ public class PlacementHandler {
      *
      */
     public void pelaaSiirto(int x, int y) {
+        lauta.setMoveNumber(lauta.getMoveNumber() + 1);
         final int pelaaja = lauta.getTurn();
         int uusiX, uusiY;
         if (!onkoLaillinenSiirto(x, y)) {

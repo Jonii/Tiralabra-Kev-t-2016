@@ -17,10 +17,19 @@ public class Node {
     PlacementHandler handler;
     static Random r = new Random();
     static double epsilon = 1e-6;
-
+    
+    private boolean scoreable;
     int x, y;
 
     int vierailut, voitot;
+
+    public boolean isScoreable() {
+        return scoreable;
+    }
+
+    public void setScoreable(boolean scoreable) {
+        this.scoreable = scoreable;
+    }
 
     public Node() {
         this(new Pelilauta());
@@ -44,6 +53,7 @@ public class Node {
     }
 
     public void selectAction() {
+        if (isScoreable()) return;
         Pino<Node> visited = new Pino<>();
         visited.add(this);
         Node currentNode = this;
@@ -54,8 +64,10 @@ public class Node {
             visited.add(currentNode);
         }
         currentNode.expand();
-        Node newNode = currentNode.select();
-        visited.add(newNode);
+        if (!currentNode.isScoreable()) {
+            currentNode = currentNode.select();
+            visited.add(currentNode);
+        }
         tulos = currentNode.simulate();
 
         while (visited.IsNotEmpty()) {
@@ -78,6 +90,7 @@ public class Node {
      */
     private Node select() {
         Node selected = null;
+        if (scoreable) return null;
         double bestValue = Double.MIN_VALUE;
         for (Node c : children) {
             double uctValue
@@ -97,6 +110,10 @@ public class Node {
 
     public void expand() {
         //select random points for now?
+        if (scoreable) {
+            return;
+        }
+        
         int pisteita = 0;
         Pino<Node> lapsiJono = new Pino<>();
         int[] tyhjat = lauta.getVapaatPisteet();
@@ -118,6 +135,10 @@ public class Node {
             indeksi++;
 
         }
+        if (pisteita == 0) {
+            scoreable = true;
+            return;
+        }
         this.children = new Node[pisteita];
         for (int i = 0; i < pisteita; i++) {
             this.children[i] = lapsiJono.pop();
@@ -129,7 +150,7 @@ public class Node {
             return true;
         }
         if (children.length == 0) {
-            throw new IllegalStateException("Malformed search tree?");
+            return true;
         }
         return false;
     }
@@ -164,17 +185,24 @@ public class Node {
         int[] vapaatpisteet;
         int offset;
         int x, y;
-
+        
+        
         boolean noSensibleMovesLeft = false;
-        while (!noSensibleMovesLeft) {
+        boolean loytyiSiirto = false;
+        
+        while (!noSensibleMovesLeft && simulateBoard.getMoveNumber() < 700) {
             vapaatpisteet = simulateBoard.getVapaatPisteet();
             offset = r.nextInt(vapaatpisteet.length);
+            
+            loytyiSiirto = false;
+            
             for (int i = 0; i < vapaatpisteet.length; i++) {
                 x = simulateBoard.transformToXCoordinate(vapaatpisteet[(i + offset) % vapaatpisteet.length]);
                 y = simulateBoard.transformToYCoordinate(vapaatpisteet[(i + offset) % vapaatpisteet.length]);
                 if (!simuhandler.tuhoaakoSiirtoOmanSilman(x, y)) {
                     simuhandler.pelaaSiirto(x, y);
                     noSensibleMovesLeft = false;
+                    loytyiSiirto = true;
                     break;
                 }
                 if (simulateBoard.isPassedOnLastMove()) {
@@ -182,10 +210,10 @@ public class Node {
                 }
 
             }
-            simuhandler.pass();
+            if (!loytyiSiirto) simuhandler.pass();
         }
 
-        int pisteet = -7; // Tämä on komi, valkealle annettava etu.
+        int pisteet = 0; // Alkuarvo on komi, valkealle annettava etu.
         int kivenvari;
         for (int i = 0; i < simulateBoard.getKoko() * simulateBoard.getKoko(); i++) {
             kivenvari = simulateBoard.getRisteys(simulateBoard.transformToXCoordinate(i), simulateBoard.transformToYCoordinate(i));
