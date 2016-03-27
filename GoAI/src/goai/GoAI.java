@@ -17,52 +17,78 @@ import logic.PlacementHandler;
 public class GoAI {
 
     static Pelilauta lauta;
-    static PlacementHandler handler;
     static int simulaatioita;
     static Node diagnostiikkaNode;
-    static int[][] apulauta;
+    static int[][] apulautaVierailut;
+    static int[][] apulautaVoitot;
+    static int passauksia;
+    static int resign = 0;
 
     /**
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        
+
         int x;
         int y;
-        
+
         if ((args.length > 0) && (args[0].compareToIgnoreCase("gtp") == 0)) {
             lauta = new Pelilauta(7);
             doGTPInterface();
         } else {
-            System.out.print("Anna laudan koko: ");
             Scanner reader = new Scanner(System.in);
-
+            /*System.out.print("Anna laudan koko: ");
+            
             lauta = new Pelilauta(reader.nextInt());
             System.out.println("");
-            apulauta = new int[lauta.getKoko()][lauta.getKoko()];
-            handler = new PlacementHandler(lauta);
+
+            reader.nextLine();*/
+            //System.out.print("Tulostetaanko diagnostiikkalauta(k/E): ");
+            //if (reader.nextLine().compareToIgnoreCase("k") == 0) {
             
-            while (true) {
-                simulaatioita = 0;
-
-                piirraLauta();
-                x = reader.nextInt() - 1;
-                y = reader.nextInt() - 1;
-                handler.pelaaSiirto(x, y);
-
-                diagnostiikkaNode = pelaaSiirtoKoneelle();
-                apulauta = new int[lauta.getKoko()][lauta.getKoko()];
-                for (int i = 0; i < diagnostiikkaNode.children.length; i++) {
-                    x = diagnostiikkaNode.children[i].x;
-                    y = diagnostiikkaNode.children[i].y;
-                    apulauta[x][y] = diagnostiikkaNode.children[i].vierailut;
-                }
-                System.out.println("Suoritettu " + simulaatioita + " simulaatiota");
+            /* Asetetaan sopivat alkuarvot Tietokone vs Ihminen -matsille:
+                6.5 komi, 9x9 laudankoko. Diagnostiikkataulu pois näkyvistä.
+            */
+            lauta = new Pelilauta(9);
+            //lauta.setKomi(6.5);
+            if (false) {
+                apulautaVierailut = new int[lauta.getKoko()][lauta.getKoko()];
+                apulautaVoitot = new int[lauta.getKoko()][lauta.getKoko()];
             }
+
+            while (resign == 0) {
+                simulaatioita = 0;
+                
+                piirraLauta(lauta);
+                System.out.print("Tietokone miettii...");
+                pelaaSiirtoKoneelle();
+
+                System.out.println("Suoritettu " + simulaatioita + " simulaatiota");
+                //continue; //uncomment this if you want to play yourself
+                piirraLauta(lauta);
+                if (lauta.getTurn() == Pelilauta.MUSTA) {
+                    System.out.println("Mustan vuoro");
+                } else {
+                    System.out.println("Valkean vuoro");
+                }
+                System.out.print("Anna seuraava siirto: ");
+                do {
+                    x = reader.nextInt() - 1;
+                    y = reader.nextInt() - 1;
+                } while (!PlacementHandler.onkoLaillinenSiirto(lauta, x, y));
+
+                PlacementHandler.pelaaSiirto(lauta, x, y);
+
+            }
+            if (resign == Pelilauta.MUSTA) {
+                System.out.println("Musta luovutti");
+            }
+            else System.out.println("Valkea luovutti");
         }
     }
 
-    public static void piirraLauta() {
+    public static void piirraLauta(Pelilauta lauta) {
+        System.out.println("passauksia: " + passauksia);
         for (int j = lauta.getKoko() - 1; j >= 0; j--) {
             System.out.format("%2d", (j + 1));
             System.out.print("|");
@@ -77,35 +103,76 @@ public class GoAI {
                 }
             }
 
-            for (int i = 0; i < lauta.getKoko(); i++) {                 //aputaulu diagnostiikkaa varten
-                System.out.format("(%5d) ", apulauta[i][j]);
+            if (apulautaVierailut != null) {
+                for (int i = 0; i < lauta.getKoko(); i++) {                 //aputaulu diagnostiikkaa varten
+                    System.out.format("(%4d/%5d)", apulautaVoitot[i][j], apulautaVierailut[i][j]);
+                }
             }
-             
             System.out.println();
         }
         System.out.print("   ");
         for (int i = 0; i < lauta.getKoko(); i++) {
             System.out.format("%2d ", (i + 1));
         }
-        System.out.print("\nAnna seuraava siirto: ");
+        if (lauta.isPassedOnLastMove() && lauta.getMoveNumber() > 1) {
+            System.out.print("Passaus");
+        }
+        System.out.println("");
+
     }
 
-    private static Node pelaaSiirtoKoneelle() {
+    private static void pelaaSiirtoKoneelle() {
         Node root = new Node(lauta);
-        long now = System.nanoTime();
-        while (System.nanoTime() < now + 2000000000) {
+        long now = System.currentTimeMillis();
+        int miettimisAika = 12000;
+        int n = 1;
+        while (System.currentTimeMillis() < now + miettimisAika) {
             root.selectAction();
             simulaatioita++;
+            if (System.currentTimeMillis() > now + (n * miettimisAika)/10) {
+                System.out.print(".");
+                n++;
+            }
         }
         int x, y;
         Node uusiNode = root.annaValinta();
 
+        if (uusiNode == null) {
+            PlacementHandler.pass(lauta);
+            return;
+        }
+
         x = uusiNode.x;
         y = uusiNode.y;
+        
+        if (1.0 * uusiNode.voitot / uusiNode.vierailut < 0.2) {
+            resign = lauta.getTurn();
+        }
 
-        handler.pelaaSiirto(x, y);
+        PlacementHandler.pelaaSiirto(lauta, x, y);
 
-        return root;
+        if (apulautaVierailut != null) {
+            diagnostiikkaNode = root;
+            apulautaVierailut = new int[lauta.getKoko()][lauta.getKoko()];
+            apulautaVoitot = new int[lauta.getKoko()][lauta.getKoko()];
+            passauksia = 0;
+            int length = 0;
+            if (diagnostiikkaNode != null) {
+                length = diagnostiikkaNode.children.length;
+            }
+
+            for (int i = 0; i < length; i++) {
+                x = diagnostiikkaNode.children[i].x;
+                y = diagnostiikkaNode.children[i].y;
+                if ((x == -1) && (y == -1)) {
+                    passauksia++;
+                } else {
+                    apulautaVierailut[x][y] = diagnostiikkaNode.children[i].vierailut;
+                    apulautaVoitot[x][y] = diagnostiikkaNode.children[i].voitot;
+                }
+            }
+        }
+        
     }
 
     static void doGTPInterface() {
@@ -123,13 +190,13 @@ public class GoAI {
     }
 
     static void doGTPGenmove(Scanner reader) {
-        Node palautus = pelaaSiirtoKoneelle();
-        char x;
-        x = (char) ('A' + palautus.x);
-        if (palautus.x > 7) {
-            x++;
-        }
-        System.out.println("= " + x + palautus.y);
+        pelaaSiirtoKoneelle();
+        //char x;
+        //x = (char) ('A' + palautus.x);
+        //if (palautus.x > 7) {
+        //    x++;
+        //}
+        //System.out.println("= " + x + palautus.y);
     }
 
     static void doGTPPlay(Scanner reader) {
@@ -148,7 +215,7 @@ public class GoAI {
             x--;
         }
         y = reader.nextInt();
-        handler.pelaaSiirto(x, y);
+        PlacementHandler.pelaaSiirto(lauta, x, y);
         System.out.println("= ");
     }
 

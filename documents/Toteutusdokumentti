@@ -17,6 +17,18 @@ Siirron valitseminen vaatii yhden simulaation vaatiman ajan, kertaa simulaatioid
 Parannusehdotuksia.
 PlacementHandler-luokka olisi voinut olla yleinen, static-luokka kaikesta riippumattomana. Nyt Nodet tarvitsevat jokainen oman laudan ja oman PlacementHandlerin näille laudoille. Samalla myös Nodet eivät ehkä tarvitsisi omaa lautaa laisinkaan. Nämä muunnokset säästäisivät luultavasti huomattavasti aikaa.
 
+Peli on puutteellisesti toteutettu, koska tilannetta ko ei tunnisteta. Tämä on kohtalaisen harvinainen erikoistilanne, joten sen toteutus tai toteuttamatta jättäminen ei testipeleissä ole huomattavasti vaikuttanut botin siirtojen järkevyyteen.
+
+Toisaalta seuraavanlainen elävä ryhmä säännönmukaisesti tunnistetaan kuolleeksi:
+| X X X X X .
+| X X O O X X
+| X O O . O X
+| X O . O O X
+| . X O O X .
+| . X X X X .
+
+Tämän korjaaminen vaatisi tuhoaakoSiirtoOmanSilman(int, int) funktion perusteellista uudelleenkirjoittamista.
+
 Lähteet:
 
 https://en.wikipedia.org/wiki/Monte_Carlo_tree_search

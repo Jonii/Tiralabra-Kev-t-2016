@@ -15,36 +15,38 @@ import static goai.Pelilauta.VALKEA;
  * @author jphanski
  */
 public class PlacementHandler {
-
-    private Pelilauta lauta;
-    private int koko;
-
-    public PlacementHandler(Pelilauta lauta) {
-        this.lauta = lauta;
-        this.koko = this.lauta.getKoko();
-    }
     
-    public void pass() {
+    public static void pass(Pelilauta lauta) {
         lauta.setPassedOnLastMove(true);
+        lauta.setKo(-1);
+        lauta.setSitaEdellinen(lauta.getEdellinen());
+        lauta.setEdellinen(-1);
         lauta.changeTurn();
         lauta.setMoveNumber(lauta.getMoveNumber() + 1);
     }
     
-    public boolean onkoLaillinenSiirto(int x, int y) {
+    public static boolean onkoLaillinenSiirto(Pelilauta lauta, int x, int y) {
         final int pelaaja = lauta.getTurn();
+        final int koko = lauta.getKoko();
         
         if ((x < 0) || (x >= koko) || (y < 0) || (y >= koko)) {
             return false;
         }
         if (lauta.getRisteys(x, y) != Pelilauta.TYHJA) return false;
         
+        //kon tarkistus
+        int uusiX, uusiY;
+        if (lauta.transformToSimpleCoordinates(x, y) == lauta.getKo()) {
+            return false;
+        }
+        
         //vapauksien tarkistus. otetaanKivia tarkistaa saadaanko vapauksia ottamalla laudalta kiviä.
         //vapauksia tarkistaa onko vierellä tyhjiä risteyksiä tai yhteys ryhmiin joilla on vapauksia
         boolean otetaanKivia = false;
         boolean vapauksia = false;
         
-        int uusiX = x - 1;
-        int uusiY = y;
+        uusiX = x - 1;
+        uusiY = y;
         if (lauta.getRisteys(uusiX, uusiY) != pelaaja && lauta.getRisteys(uusiX, uusiY) != Pelilauta.TYHJA) {
             if (lauta.getVapaus(uusiX, uusiY) == 1) {
                 otetaanKivia = true;
@@ -131,64 +133,69 @@ public class PlacementHandler {
      * Pelaa laudalle siirron.
      *
      */
-    public void pelaaSiirto(int x, int y) {
+    public static void pelaaSiirto(Pelilauta lauta, int x, int y) {
         lauta.setMoveNumber(lauta.getMoveNumber() + 1);
+        lauta.setPassedOnLastMove(false);
+        
         final int pelaaja = lauta.getTurn();
         int uusiX, uusiY;
-        if (!onkoLaillinenSiirto(x, y)) {
-            lauta.changeTurn();
+        if (!onkoLaillinenSiirto(lauta, x, y)) {
+            pass(lauta);
             return;
         }
-        
+        lauta.setKo(-1);
+        lauta.setSitaEdellinen(lauta.getEdellinen());
+        lauta.setEdellinen(lauta.transformToSimpleCoordinates(x, y));
         uusiX = x - 1;
         uusiY = y;
         if (lauta.getRisteys(uusiX, uusiY) != pelaaja && lauta.getRisteys(uusiX, uusiY) != Pelilauta.TYHJA) {
             if (lauta.getVapaus(uusiX, uusiY) == 1) {
-                poistaKivet(uusiX, uusiY);
+                poistaKivet(lauta, uusiX, uusiY);
             }
         }
         uusiX = x + 1;
         uusiY = y;
         if (lauta.getRisteys(uusiX, uusiY) != pelaaja && lauta.getRisteys(uusiX, uusiY) != Pelilauta.TYHJA) {
             if (lauta.getVapaus(uusiX, uusiY) == 1) {
-                poistaKivet(uusiX, uusiY);
+                poistaKivet(lauta, uusiX, uusiY);
             }
         }
         uusiX = x;
         uusiY = y + 1;
         if (lauta.getRisteys(uusiX, uusiY) != pelaaja && lauta.getRisteys(uusiX, uusiY) != Pelilauta.TYHJA) {
             if (lauta.getVapaus(uusiX, uusiY) == 1) {
-                poistaKivet(uusiX, uusiY);
+                poistaKivet(lauta, uusiX, uusiY);
             }
         }
         uusiX = x;
         uusiY = y - 1;
         if (lauta.getRisteys(uusiX, uusiY) != pelaaja && lauta.getRisteys(uusiX, uusiY) != Pelilauta.TYHJA) {
             if (lauta.getVapaus(uusiX, uusiY) == 1) {
-                poistaKivet(uusiX, uusiY);
+                poistaKivet(lauta, uusiX, uusiY);
             }
         }
 
         lauta.setRisteys(x, y, pelaaja);
-        laskeVapaudet(x, y);
+        laskeVapaudet(lauta, x, y);
         
         uusiX = x;
         uusiY = y+1;
-        if (lauta.getRisteys(uusiX, uusiY) != Pelilauta.TYHJA) laskeVapaudet(uusiX, uusiY);
+        if (lauta.getRisteys(uusiX, uusiY) != Pelilauta.TYHJA) laskeVapaudet(lauta, uusiX, uusiY);
         uusiX = x;
         uusiY = y-1;
-        if (lauta.getRisteys(uusiX, uusiY) != Pelilauta.TYHJA) laskeVapaudet(uusiX, uusiY);
+        if (lauta.getRisteys(uusiX, uusiY) != Pelilauta.TYHJA) laskeVapaudet(lauta, uusiX, uusiY);
         uusiX = x+1;
         uusiY = y;
-        if (lauta.getRisteys(uusiX, uusiY) != Pelilauta.TYHJA) laskeVapaudet(uusiX, uusiY);
+        if (lauta.getRisteys(uusiX, uusiY) != Pelilauta.TYHJA) laskeVapaudet(lauta, uusiX, uusiY);
         uusiX = x-1;
         uusiY = y;
-        if (lauta.getRisteys(uusiX, uusiY) != Pelilauta.TYHJA) laskeVapaudet(uusiX, uusiY);
+        if (lauta.getRisteys(uusiX, uusiY) != Pelilauta.TYHJA) laskeVapaudet(lauta, uusiX, uusiY);
         
         lauta.changeTurn();
     }
 
-    private void laskeVapaudet(int x, int y) {
+    private static void laskeVapaudet(Pelilauta lauta, int x, int y) {
+        final int koko = lauta.getKoko();
         Pino<Integer> pino = new Pino<>();
         Pino<Integer> kiviKetju = new Pino<>();
 
@@ -249,9 +256,11 @@ public class PlacementHandler {
         }
     }
 
-    private void poistaKivet(int x, int y) {
+    private static void poistaKivet(Pelilauta lauta, int x, int y) {
+        final int koko = lauta.getKoko();
+        
         Pino<Integer> pino = new Pino<>();
-
+        
         boolean[] visited = new boolean[koko * koko];
 
         int pelaaja = lauta.getRisteys(x, y);
@@ -259,6 +268,8 @@ public class PlacementHandler {
         int uusiSimple;
         
         int currentX, currentY;
+        
+        int poistettujenMaara = 0;
 
         int current = lauta.transformToSimpleCoordinates(x, y);
         pino.add(current);
@@ -276,6 +287,7 @@ public class PlacementHandler {
             if (lauta.getRisteys(currentX, currentY) == pelaaja) {
                 
                 lauta.setRisteys(currentX, currentY, Pelilauta.TYHJA);
+                poistettujenMaara++;
                 
                 uusiSimple = lauta.moveLeft(current);
                 if (uusiSimple != -1) {
@@ -295,13 +307,17 @@ public class PlacementHandler {
                 }
             }
             if (lauta.getRisteys(currentX, currentY) != Pelilauta.TYHJA) {
-                laskeVapaudet(currentX, currentY);
+                laskeVapaudet(lauta, currentX, currentY);
             }
 
         }
+        if (poistettujenMaara == 1) {
+            lauta.setKo(lauta.transformToSimpleCoordinates(x, y));
+        }
     }
     
-    public boolean tuhoaakoSiirtoOmanSilman(int x, int y) {
+    public static boolean tuhoaakoSiirtoOmanSilman(Pelilauta lauta, int x, int y) {
+        final int koko = lauta.getKoko();
         final int pelaaja = lauta.getTurn();
         
         //tarkistetaan onko risteys ympäröity omanvärisillä kivillä

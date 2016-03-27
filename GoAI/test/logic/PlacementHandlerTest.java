@@ -18,7 +18,6 @@ import goai.Pelilauta;
  * @author jphanski
  */
 public class PlacementHandlerTest {
-    static PlacementHandler handler;
     static Pelilauta lauta;
     
     
@@ -36,7 +35,6 @@ public class PlacementHandlerTest {
     @Before
     public void setUp() {
         lauta = new Pelilauta();
-        handler = new PlacementHandler(lauta);
     }
     
     @After
@@ -48,19 +46,19 @@ public class PlacementHandlerTest {
      */
     @Test
     public void testOnkoLaillinenSiirto() {
-        assertEquals(true, handler.onkoLaillinenSiirto(0, 0));
-        assertEquals(true, handler.onkoLaillinenSiirto(18, 18));
-        handler.pelaaSiirto(0, 0);
-        assertEquals(false, handler.onkoLaillinenSiirto(0, 0));
-        assertEquals(false, handler.onkoLaillinenSiirto(-1, 0));
-        assertEquals(false, handler.onkoLaillinenSiirto(0, 19));
-        handler.pelaaSiirto(1, 0);
-        handler.pelaaSiirto(1, 1);
-        handler.pelaaSiirto(0, 1);
-        assertEquals(false, handler.onkoLaillinenSiirto(0, 0));
-        handler.pelaaSiirto(2, 0);
-        handler.pelaaSiirto(10, 10);
-        assertEquals(true, handler.onkoLaillinenSiirto(0, 0));
+        assertEquals(true, PlacementHandler.onkoLaillinenSiirto(lauta, 0, 0));
+        assertEquals(true, PlacementHandler.onkoLaillinenSiirto(lauta, 18, 18));
+        PlacementHandler.pelaaSiirto(lauta, 0, 0);
+        assertEquals(false, PlacementHandler.onkoLaillinenSiirto(lauta, 0, 0));
+        assertEquals(false, PlacementHandler.onkoLaillinenSiirto(lauta, -1, 0));
+        assertEquals(false, PlacementHandler.onkoLaillinenSiirto(lauta, 0, 19));
+        PlacementHandler.pelaaSiirto(lauta, 1, 0);
+        PlacementHandler.pelaaSiirto(lauta, 1, 1);
+        PlacementHandler.pelaaSiirto(lauta, 0, 1);
+        assertEquals(false, PlacementHandler.onkoLaillinenSiirto(lauta, 0, 0));
+        PlacementHandler.pelaaSiirto(lauta, 2, 0);
+        PlacementHandler.pelaaSiirto(lauta, 10, 10);
+        assertEquals(true, PlacementHandler.onkoLaillinenSiirto(lauta, 0, 0));
     }
 
     /**
@@ -69,26 +67,26 @@ public class PlacementHandlerTest {
     @Test
     public void testPelaaSiirto() {
         assertEquals(Pelilauta.TYHJA, lauta.getRisteys(0, 0));
-        handler.pelaaSiirto(0, 0);
+        PlacementHandler.pelaaSiirto(lauta, 0, 0);
         assertEquals(Pelilauta.MUSTA, lauta.getRisteys(0, 0));
-        handler.pelaaSiirto(1, 0);
+        PlacementHandler.pelaaSiirto(lauta, 1, 0);
         assertEquals(Pelilauta.VALKEA, lauta.getRisteys(1, 0));
-        handler.pelaaSiirto(2, 0);
+        PlacementHandler.pelaaSiirto(lauta, 2, 0);
         assertEquals(Pelilauta.MUSTA, lauta.getRisteys(2, 0));
     }
     
     @Test
     public void testLaskeVapaudet() {
-        handler.pelaaSiirto(0, 0);
-        handler.pelaaSiirto(18, 18);
-        handler.pelaaSiirto(5, 5);
+        PlacementHandler.pelaaSiirto(lauta, 0, 0);
+        PlacementHandler.pelaaSiirto(lauta, 18, 18);
+        PlacementHandler.pelaaSiirto(lauta, 5, 5);
         assertEquals(4, lauta.getVapaus(5, 5));
         assertEquals(2, lauta.getVapaus(18, 18));     
         assertEquals(2, lauta.getVapaus(0, 0));    
-        handler.pelaaSiirto(15, 15);
-        handler.pelaaSiirto(1, 0);
+        PlacementHandler.pelaaSiirto(lauta, 15, 15);
+        PlacementHandler.pelaaSiirto(lauta, 1, 0);
         assertEquals(3, lauta.getVapaus(0, 0));
-        handler.pelaaSiirto(2, 0);
+        PlacementHandler.pelaaSiirto(lauta, 2, 0);
         assertEquals(2, lauta.getVapaus(2, 0));        
         assertEquals(2, lauta.getVapaus(1, 0));
         assertEquals(2, lauta.getVapaus(0, 0));
@@ -96,9 +94,9 @@ public class PlacementHandlerTest {
     
     @Test
     public void testPoistaKivet() {
-        handler.pelaaSiirto(1, 0);
-        handler.pelaaSiirto(0, 0);
-        handler.pelaaSiirto(0, 1);
+        PlacementHandler.pelaaSiirto(lauta, 1, 0);
+        PlacementHandler.pelaaSiirto(lauta, 0, 0);
+        PlacementHandler.pelaaSiirto(lauta, 0, 1);
         assertEquals(Pelilauta.TYHJA, lauta.getRisteys(0, 0));
         assertEquals(3, lauta.getVapaus(1, 0));
         assertEquals(3, lauta.getVapaus(0, 1));
@@ -106,14 +104,14 @@ public class PlacementHandlerTest {
     
     @Test
     public void testSilmanTuhoamisenHuomaaminen() {
-        handler.pelaaSiirto(1, 0); //                                    ______
-        handler.pelaaSiirto(0, 0); //                                   | x
-        handler.pelaaSiirto(0, 1); //                                   |xx
-        handler.pelaaSiirto(3, 3); //                                   |
-        assertEquals(false, handler.tuhoaakoSiirtoOmanSilman(0, 0)); // |    o
-        handler.pelaaSiirto(1, 1);
-        assertEquals(false, handler.tuhoaakoSiirtoOmanSilman(0, 0));
-        handler.pass();
-        assertEquals(true, handler.tuhoaakoSiirtoOmanSilman(0, 0));
+        PlacementHandler.pelaaSiirto(lauta, 1, 0); //                                    ______
+        PlacementHandler.pelaaSiirto(lauta, 0, 0); //                                   | x
+        PlacementHandler.pelaaSiirto(lauta, 0, 1); //                                   |xx
+        PlacementHandler.pelaaSiirto(lauta, 3, 3); //                                   |
+        assertEquals(false, PlacementHandler.tuhoaakoSiirtoOmanSilman(lauta, 0, 0)); // |    o
+        PlacementHandler.pelaaSiirto(lauta, 1, 1);
+        assertEquals(false, PlacementHandler.tuhoaakoSiirtoOmanSilman(lauta, 0, 0));
+        PlacementHandler.pass(lauta);
+        assertEquals(true, PlacementHandler.tuhoaakoSiirtoOmanSilman(lauta, 0, 0));
     }
 }

@@ -53,14 +53,14 @@ public class PelilautaTest {
     
     @Test
     public void testaaSiirtymat() {
-        assertEquals(-1, lauta.moveLeft(lauta.transformToSimpleCoordinates(5, 0)));
-        assertEquals(-1, lauta.moveRight(lauta.transformToSimpleCoordinates(12, 18)));
-        assertEquals(-1, lauta.moveUp(lauta.transformToSimpleCoordinates(18, 2)));
-        assertEquals(-1, lauta.moveDown(lauta.transformToSimpleCoordinates(0, 16)));
-        assertEquals(lauta.transformToSimpleCoordinates(6, 2), lauta.moveLeft(lauta.transformToSimpleCoordinates(6, 3)));
-        assertEquals(lauta.transformToSimpleCoordinates(6, 4), lauta.moveRight(lauta.transformToSimpleCoordinates(6, 3)));
-        assertEquals(lauta.transformToSimpleCoordinates(5, 3), lauta.moveDown(lauta.transformToSimpleCoordinates(6, 3)));
-        assertEquals(lauta.transformToSimpleCoordinates(7, 3), lauta.moveUp(lauta.transformToSimpleCoordinates(6, 3)));
+        assertEquals(-1, lauta.moveLeft(lauta.transformToSimpleCoordinates(0, 5)));
+        assertEquals(-1, lauta.moveRight(lauta.transformToSimpleCoordinates(18, 12)));
+        assertEquals(-1, lauta.moveUp(lauta.transformToSimpleCoordinates(4, 18)));
+        assertEquals(-1, lauta.moveDown(lauta.transformToSimpleCoordinates(6, 0)));
+        assertEquals(lauta.transformToSimpleCoordinates(5, 3), lauta.moveLeft(lauta.transformToSimpleCoordinates(6, 3)));
+        assertEquals(lauta.transformToSimpleCoordinates(7, 3), lauta.moveRight(lauta.transformToSimpleCoordinates(6, 3)));
+        assertEquals(lauta.transformToSimpleCoordinates(6, 2), lauta.moveDown(lauta.transformToSimpleCoordinates(6, 3)));
+        assertEquals(lauta.transformToSimpleCoordinates(6, 4), lauta.moveUp(lauta.transformToSimpleCoordinates(6, 3)));
         assertNotEquals(-1, lauta.moveRight(lauta.transformToSimpleCoordinates(0, 0)));
         assertNotEquals(-1, lauta.moveUp(lauta.transformToSimpleCoordinates(0, 0)));
         assertEquals(-1, lauta.moveDown(lauta.transformToSimpleCoordinates(0, 0)));

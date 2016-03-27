@@ -6,6 +6,7 @@
 package goai;
 
 import java.util.Arrays;
+import logic.PlacementHandler;
 
 /**
  * Laudan risteyksen sisältöä kuvaava olio. Sisältää paitsi tiedon siitä, onko
@@ -57,6 +58,14 @@ public class Pelilauta {
     
     private int moveNumber;
     
+    private int edellinen;
+    private int sitaEdellinen;
+    
+    /**
+     * simplistiseen kon tarkistukseen käytettävä muuttuja
+     */
+    private int ko;    
+    
     /**
      * Valkealle annettava tasoitus
      */
@@ -69,6 +78,10 @@ public class Pelilauta {
     public Pelilauta(int koko) {
         this.koko = koko;
         this.komi = 0.5;
+        this.edellinen = -1;
+        this.sitaEdellinen = -1;
+        this.ko = -1;
+        
         if (koko > 12) this.komi = 7.5;
         lautaTaulu = new Alkio[koko][koko];
         for (int i = 0; i<koko; i++) {
@@ -78,6 +91,30 @@ public class Pelilauta {
         }
         pelaaja = MUSTA;
         passedOnLastMove = false;
+    }
+
+    public int getKo() {
+        return ko;
+    }
+
+    public void setKo(int ko) {
+        this.ko = ko;
+    }
+
+    public int getEdellinen() {
+        return edellinen;
+    }
+
+    public void setEdellinen(int edellinen) {
+        this.edellinen = edellinen;
+    }
+
+    public int getSitaEdellinen() {
+        return sitaEdellinen;
+    }
+
+    public void setSitaEdellinen(int sitaEdellinen) {
+        this.sitaEdellinen = sitaEdellinen;
     }
 
     public int getMoveNumber() {
@@ -156,13 +193,13 @@ public class Pelilauta {
      * @return Tyhjät risteykset listattuna simple-formaattia käyttäen. Käytä
      * transformToXCoordinate ja transformToYCoordinate() funktioita.
      */
-    public int[] getVapaatPisteet() {
+    public int[] getMahdollisetPisteet() {
         int pos = 0;
         int[] taulu = new int[koko * koko];
 
         for (int i = 0; i < koko; i++) {
             for (int j = 0; j < koko; j++) {
-                if (this.lautaTaulu[i][j].getKivi() == TYHJA) {
+                if (PlacementHandler.onkoLaillinenSiirto(this, i, j)) {
                     taulu[pos] = transformToSimpleCoordinates(i, j);
                     pos++;
                 }
@@ -204,6 +241,9 @@ public class Pelilauta {
         if (getTurn() != Pelilauta.MUSTA) palautus.changeTurn();
         palautus.setMoveNumber(getMoveNumber());
         palautus.setKomi(getKomi());
+        palautus.setEdellinen(edellinen);
+        palautus.setSitaEdellinen(sitaEdellinen);
+        palautus.setKo(ko);
         return palautus;
     }
     
@@ -284,48 +324,50 @@ public class Pelilauta {
         return simple % koko;
     }
 
-    boolean sensible(int i) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
     /**
      * apufunktioita simple-koordinaatistossa hyppäämiseen sivulle, ylös tai alas.
      * @param simple simple-arvo
-     * @return uusi simple-koordinaatti halutussa suunnassa
+     * @return uusi simple-koordinaatti halutussa suunnassa, tai -1 jos laudan ulkopuolella
      */
     public int moveLeft(int simple) {
-        int palautus = simple - 1;
-        if (palautus % this.getKoko() < this.getKoko() -1) return palautus;
-        return -1;
+        if (simple < 0 || simple >= getKoko() * getKoko()) {
+            return -1;
+        }
+        return transformToSimpleCoordinates(transformToXCoordinate(simple) - 1, transformToYCoordinate(simple));
     }
     /**
      * apufunktioita simple-koordinaatistossa hyppäämiseen sivulle, ylös tai alas.
      * @param simple simple-arvo
-     * @return uusi simple-koordinaatti halutussa suunnassa
+     * @return uusi simple-koordinaatti halutussa suunnassa, tai -1 jos laudan ulkopuolella
      */
     public int moveRight(int simple) {
-        int palautus = simple + 1;
-        if (palautus % this.getKoko() > 0) return palautus;
-        return -1;
+        if (simple < 0 || simple >= getKoko() * getKoko()) {
+            return -1;
+        }
+        return transformToSimpleCoordinates(transformToXCoordinate(simple) + 1, transformToYCoordinate(simple));
     }    
     /**
      * apufunktioita simple-koordinaatistossa hyppäämiseen sivulle, ylös tai alas.
      * @param simple simple-arvo
-     * @return uusi simple-koordinaatti halutussa suunnassa
+     * @return uusi simple-koordinaatti halutussa suunnassa, tai -1 jos laudan ulkopuolella
      */
     public int moveUp(int simple) {
-        int palautus = simple + this.getKoko();
-        if (palautus < this.getKoko() * this.getKoko()) return palautus;
-        return -1;
+        if (simple < 0 || simple >= getKoko() * getKoko()) {
+            return -1;
+        }
+ 
+        return transformToSimpleCoordinates(transformToXCoordinate(simple), transformToYCoordinate(simple) + 1);
     }
     /**
      * apufunktioita simple-koordinaatistossa hyppäämiseen sivulle, ylös tai alas.
      * @param simple simple-arvo
-     * @return uusi simple-koordinaatti halutussa suunnassa
+     * @return uusi simple-koordinaatti halutussa suunnassa, tai -1 jos laudan ulkopuolella
      */
     public int moveDown(int simple) {
-        int palautus = simple - this.getKoko();
-        if (palautus >= 0) return palautus;
-        return -1;
+        if (simple < 0 || simple >= getKoko() * getKoko()) {
+            return -1;
+        }
+        return transformToSimpleCoordinates(transformToXCoordinate(simple), transformToYCoordinate(simple) - 1);
     }
 
 }
