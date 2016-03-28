@@ -25,17 +25,21 @@ public class GoAI {
     static int resign = 0;
 
     /**
-     * @param args the command line arguments
+     * @param args kvk = kone vastaan kone matsi, gtp = Go Text Protocol interfacen käyttö tavallisen käyttöliittymän sijaan.
      */
     public static void main(String[] args) {
-
+        boolean koneVastaanKone = false;
         int x;
         int y;
+        String komento;
 
         if ((args.length > 0) && (args[0].compareToIgnoreCase("gtp") == 0)) {
             lauta = new Pelilauta(7);
-            doGTPInterface();
+            GTP.read();
         } else {
+            if ((args.length > 0) && (args[0].compareToIgnoreCase("kvk") == 0)) {
+                koneVastaanKone = true;
+            }
             Scanner reader = new Scanner(System.in);
             /*System.out.print("Anna laudan koko: ");
             
@@ -50,8 +54,8 @@ public class GoAI {
                 6.5 komi, 9x9 laudankoko. Diagnostiikkataulu pois näkyvistä.
             */
             lauta = new Pelilauta(9);
-            //lauta.setKomi(6.5);
-            if (false) {
+            lauta.setKomi(6.5);
+            if (true) {
                 apulautaVierailut = new int[lauta.getKoko()][lauta.getKoko()];
                 apulautaVoitot = new int[lauta.getKoko()][lauta.getKoko()];
             }
@@ -64,7 +68,7 @@ public class GoAI {
                 pelaaSiirtoKoneelle();
 
                 System.out.println("Suoritettu " + simulaatioita + " simulaatiota");
-                //continue; //uncomment this if you want to play yourself
+                if (koneVastaanKone) continue; //uncomment this if you want to play yourself
                 piirraLauta(lauta);
                 if (lauta.getTurn() == Pelilauta.MUSTA) {
                     System.out.println("Mustan vuoro");
@@ -73,8 +77,9 @@ public class GoAI {
                 }
                 System.out.print("Anna seuraava siirto: ");
                 do {
-                    x = reader.nextInt() - 1;
-                    y = reader.nextInt() - 1;
+                    komento = reader.nextLine();
+                    x = GTP.readFirstCoord(komento);
+                    y = GTP.readSecondCoord(komento);
                 } while (!PlacementHandler.onkoLaillinenSiirto(lauta, x, y));
 
                 PlacementHandler.pelaaSiirto(lauta, x, y);
@@ -111,8 +116,11 @@ public class GoAI {
             System.out.println();
         }
         System.out.print("   ");
-        for (int i = 0; i < lauta.getKoko(); i++) {
-            System.out.format("%2d ", (i + 1));
+        int koko = lauta.getKoko();
+        if (koko > 7) koko++;
+        for (int i = 0; i < koko; i++) {
+            if (i == 8) continue;
+            System.out.print(" " + ((char) (i + 'A')) + " ");
         }
         if (lauta.isPassedOnLastMove() && lauta.getMoveNumber() > 1) {
             System.out.print("Passaus");
@@ -120,11 +128,15 @@ public class GoAI {
         System.out.println("");
 
     }
-
+    
+    /**
+     * Pelaa siirron tietokoneelle. Päivittää siinä sivussa myös
+     * diagnostiikkataulua jonka avulla voi kartoittaa 
+     */
     private static void pelaaSiirtoKoneelle() {
         Node root = new Node(lauta);
         long now = System.currentTimeMillis();
-        int miettimisAika = 12000;
+        int miettimisAika = 13000;
         int n = 1;
         while (System.currentTimeMillis() < now + miettimisAika) {
             root.selectAction();
@@ -173,50 +185,6 @@ public class GoAI {
             }
         }
         
-    }
-
-    static void doGTPInterface() {
-        Scanner reader = new Scanner(System.in);
-        while (true) {
-            if (reader.findInLine("name") != null) {
-                System.out.println("= JoniGo");
-            } else if (reader.findInLine("p|Pl|La|Ay|Y") != null) {
-                doGTPPlay(reader);
-            } else if (reader.findInLine("g|Ge|En|Nm|Mo|Ov|Ve|E") != null) {
-                doGTPGenmove(reader);
-            }
-
-        }
-    }
-
-    static void doGTPGenmove(Scanner reader) {
-        pelaaSiirtoKoneelle();
-        //char x;
-        //x = (char) ('A' + palautus.x);
-        //if (palautus.x > 7) {
-        //    x++;
-        //}
-        //System.out.println("= " + x + palautus.y);
-    }
-
-    static void doGTPPlay(Scanner reader) {
-        int x, y;
-        if (reader.findInLine("black") != null) {
-            if (lauta.getTurn() != Pelilauta.MUSTA) {
-                lauta.changeTurn();
-            }
-        } else if (reader.findInLine("white") != null) {
-            if (lauta.getTurn() != Pelilauta.VALKEA) {
-                lauta.changeTurn();
-            }
-        }
-        x = (reader.next("[A-T]").charAt(0) - 'A');
-        if (x > 7) {
-            x--;
-        }
-        y = reader.nextInt();
-        PlacementHandler.pelaaSiirto(lauta, x, y);
-        System.out.println("= ");
     }
 
 }

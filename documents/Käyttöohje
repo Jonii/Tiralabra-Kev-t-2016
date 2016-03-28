@@ -2,8 +2,9 @@ Netbeansissa valites Clean and Build. GoAI-kansiossa tulisi nyt olla dist-kansio
 
 	> cd .../GoAI/dist/
 	> java -jar GoAI.jar
-Anna laudan koko ensimmäiseksi, jonka jälkeen syötä haluttuja koordinaatteja.
 
-Suositeltava laudan koko on välillä 5-19. 19 on tällä hetkellä botille kovin vaikeaa ja pelit kestävät kauan. 7x7 peleissä botti on aika vahva. Nopeita debug-pelejä varten 5x5 on aivan tarpeeksi. Yleensä pelilaudan leveys on pariton luku, yleisimmät koot ovat 9x9, 13x13 ja 19x19. 9x9 pelit saattavat kuitenkin olla vielä liian vaikeita botilleni.
+Suositeltava laudan koko on välillä 5-19. 19 on tällä hetkellä botille kovin vaikeaa ja pelit kestävät kauan. 7x7 peleissä botti on aika vahva. Nopeita debug-pelejä varten 5x5 on aivan tarpeeksi. Yleensä pelilaudan leveys on pariton luku, yleisimmät koot ovat 9x9, 13x13 ja 19x19. 9x9 on suurin koko jonka bottini osaa jotensakin hyvin pelata. Oletuksena tällä hetkellä peli käynnistyy 9x9 tilassa, komilla 6.5.
 
-Anna siirron koordinaatit(välillä 1 - laudan koko), x-koordinaatti ensin, pelataksesi siirron. Botti vastaa omalla siirrollaan. Botti pelaa aina valkoista, pelaaja aina mustaa. Musta = X, valkea = O.
+Anna siirto muodossa XY tai XYY, jossa X on kirjain, Y on numero, eli esim J8. I-koordinaatti puuttuu perinteisesti go-laudoista, eli H:sta seuraava kirjain on J.
+
+GTP-moodia pystyy käyttämään esim. GoGUI-ohjelman kanssa. "java -jar GoAI.jar gtp" suorittaa ohjelman Go Text Protocol-tilassa, joka on yhteensopiva monien graafisten frontendien kanssa, esim yllämainittu GoGUI. Tämä mahdollistaa esim pisteytyksen
