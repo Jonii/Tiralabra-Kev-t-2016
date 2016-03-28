@@ -22,13 +22,13 @@ public class GTP {
     private static String komento;
     private static Pelilauta lauta;
     private static int koko;
-
+    public static Logger logger;
     /**
      * lukee GTP-komentoja hamaan loppuun saakka.
      */
     public static void read() {
 
-        Logger logger = Logger.getLogger("MyLog");
+        logger = Logger.getLogger("MyLog");
         logger.setUseParentHandlers(false);
 
         FileHandler fh;
@@ -61,11 +61,11 @@ public class GTP {
             } else if (komento.startsWith("GENMOVE")) {
                 GeneroiSiirto();
             } else if (komento.startsWith("NAME")) {
-                System.out.println("= JoniBot");
+                System.out.println("= Strabot");
             } else if (komento.startsWith("PROTOCOL_VERSION")) {
                 System.out.println("= 2");
             } else if (komento.startsWith("VERSION")) {
-                System.out.println("= v073");
+                System.out.println("= 1.1.0");
             } else if (komento.startsWith("QUIT")) {
                 return;
             } else if (komento.startsWith("BOARDSIZE")) {
@@ -116,6 +116,9 @@ public class GTP {
                 } else {
                     System.out.println("= false");
                 }
+            }
+            else {
+                System.out.println("? ");
             }
             System.out.println();
             System.out.flush();
@@ -175,10 +178,15 @@ public class GTP {
             if (komento.startsWith("PLAY BLACK")) {
                 cutoff = 11;
             }
-            if (PlacementHandler.onkoLaillinenSiirto(lauta, readFirstCoord(komento.substring(cutoff)), readSecondCoord(komento.substring(cutoff)))) {
+            if (komento.substring(cutoff).compareTo("PASS") == 0) {
+                PlacementHandler.pass(lauta);
+                System.out.println("= ");
+            }
+            else if (PlacementHandler.onkoLaillinenSiirto(lauta, readFirstCoord(komento.substring(cutoff)), readSecondCoord(komento.substring(cutoff)))) {
                 PlacementHandler.pelaaSiirto(lauta, readFirstCoord(komento.substring(cutoff)), readSecondCoord(komento.substring(cutoff)));
                 System.out.println("= ");
-            } else {
+            }
+            else {
                 System.out.println("?");
             }
         } else if (komento.startsWith("PLAY W")) {
@@ -188,7 +196,11 @@ public class GTP {
             if (komento.startsWith("PLAY WHITE")) {
                 cutoff = 11;
             }
-            if (PlacementHandler.onkoLaillinenSiirto(lauta, readFirstCoord(komento.substring(cutoff)), readSecondCoord(komento.substring(cutoff)))) {
+            if (komento.substring(cutoff).compareTo("PASS") == 0) {
+                PlacementHandler.pass(lauta);
+                System.out.println("= ");
+            }
+            else if (PlacementHandler.onkoLaillinenSiirto(lauta, readFirstCoord(komento.substring(cutoff)), readSecondCoord(komento.substring(cutoff)))) {
                 PlacementHandler.pelaaSiirto(lauta, readFirstCoord(komento.substring(cutoff)), readSecondCoord(komento.substring(cutoff)));
                 System.out.println("= ");
             } else {
@@ -200,6 +212,7 @@ public class GTP {
     }
 
     private static void GeneroiSiirto() {
+        int simulaatioita = 0;
         if (komento.startsWith("GENMOVE B")) {
             if (lauta.getTurn() != Pelilauta.MUSTA) {
                 lauta.changeTurn();
@@ -212,17 +225,20 @@ public class GTP {
         }
         Node root = new Node(lauta);
         long now = System.currentTimeMillis();
-        int miettimisAika = 12000;
+        int miettimisAika = 6000;
         while (System.currentTimeMillis() < now + miettimisAika) {
             root.selectAction();
+            simulaatioita++;
         }
         Node uusiNode = root.annaValinta();
+        logger.info("Suoritettiin " + simulaatioita + " simulaatiota ajassa " + miettimisAika/1000 + "s.");
 
         if (uusiNode == null) {
             System.out.println("= pass");
             PlacementHandler.pass(lauta);
         } //luovutus jos voittotodennäköisyys alle 20%
-        else if (uusiNode.voitot * 1.0 / uusiNode.vierailut < 0.2) {
+        
+        else if (Node.voitonTodennakoisyys(root) < 0.2) {
             System.out.println("= resign");
         } else if (uusiNode.x == -1 && uusiNode.y == -1) {
             System.out.println("= pass");
@@ -231,5 +247,6 @@ public class GTP {
             System.out.println("= " + produceCoord(uusiNode.x, uusiNode.y));
             PlacementHandler.pelaaSiirto(lauta, uusiNode.x, uusiNode.y);
         }
+        logger.info("Voiton todennäköisyys: " + Node.voitonTodennakoisyys(root) + ".\nValittu node: " + uusiNode.voitot + "/" + uusiNode.vierailut + ".");
     }
 }

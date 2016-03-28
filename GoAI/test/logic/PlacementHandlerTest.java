@@ -108,10 +108,11 @@ public class PlacementHandlerTest {
         PlacementHandler.pelaaSiirto(lauta, 0, 0); //                                   | x
         PlacementHandler.pelaaSiirto(lauta, 0, 1); //                                   |xx
         PlacementHandler.pelaaSiirto(lauta, 3, 3); //                                   |
-        assertEquals(false, PlacementHandler.tuhoaakoSiirtoOmanSilman(lauta, 0, 0)); // |    o
-        PlacementHandler.pelaaSiirto(lauta, 1, 1);
+        PlacementHandler.pelaaSiirto(lauta, 1, 1); //                                   |    o
         assertEquals(false, PlacementHandler.tuhoaakoSiirtoOmanSilman(lauta, 0, 0));
         PlacementHandler.pass(lauta);
         assertEquals(true, PlacementHandler.tuhoaakoSiirtoOmanSilman(lauta, 0, 0));
+        
+        PlacementHandler.pelaaSiirto(lauta, 2, 2);
     }
 }

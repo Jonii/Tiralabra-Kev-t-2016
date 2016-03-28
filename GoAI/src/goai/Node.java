@@ -54,7 +54,7 @@ public class Node {
         if (PlacementHandler.onkoLaillinenSiirto(this.lauta, x, y)) {
             PlacementHandler.pelaaSiirto(this.lauta, x, y);
         } else {
-            PlacementHandler.pass(lauta);
+            PlacementHandler.pass(this.lauta);
         }
     }
 
@@ -130,7 +130,6 @@ public class Node {
      * harkitsemaan. Tämänhetkinen versio ottaa satunnaisesti 20 pistettä.
      */
     public void expand() {
-        //select random points for now?
         if (scoreable) {
             return;
         }
@@ -187,8 +186,20 @@ public class Node {
         simple = lauta.moveDown(lauta.moveDown(lauta.getEdellinen()));
         if (lisaaJonoon(simple, lapsiJono, mahdollisetPisteet)) pisteita++;
         
+        simple = lauta.moveDown(lauta.getSitaEdellinen());
+        if (lisaaJonoon(simple, lapsiJono, mahdollisetPisteet)) pisteita++;
         
-        while ((indeksi < mahdolliset.length) && (pisteita < 24)) {
+        simple = lauta.moveUp(lauta.getSitaEdellinen());
+        if (lisaaJonoon(simple, lapsiJono, mahdollisetPisteet)) pisteita++;
+        
+        simple = lauta.moveLeft(lauta.getSitaEdellinen());
+        if (lisaaJonoon(simple, lapsiJono, mahdollisetPisteet)) pisteita++;
+        
+        simple = lauta.moveRight(lauta.getSitaEdellinen());
+        if (lisaaJonoon(simple, lapsiJono, mahdollisetPisteet)) pisteita++;
+        
+        
+        while ((indeksi < mahdolliset.length) && (pisteita < 20)) {
             x = lauta.transformToXCoordinate(mahdolliset[(indeksi + offset) % mahdolliset.length]);
             y = lauta.transformToYCoordinate(mahdolliset[(indeksi + offset) % mahdolliset.length]);
             if (mahdollisetPisteet[mahdolliset[(indeksi + offset) % mahdolliset.length]]) {
@@ -202,15 +213,12 @@ public class Node {
             indeksi++;
 
         }
-        if (pisteita == 0) {
-            scoreable = true;
-            return;
-        }
 
-        if (pisteita < 20) {
-            lapsiJono.add(new Node(lauta, -1, -1));
-            pisteita++;
-        }
+        Node passaus = new Node(lauta, -1, -1);
+        passaus.vierailut = 30;
+        passaus.voitot = 30;
+        lapsiJono.add(passaus);
+        pisteita++;
 
         this.children = new Node[pisteita];
         for (int i = 0; i < pisteita; i++) {
@@ -238,7 +246,7 @@ public class Node {
             return true;
         }
         if (children.length == 0) {
-            return true;
+            throw new IllegalStateException("Hakupuu rikki");
         }
         return false;
     }
@@ -332,10 +340,21 @@ public class Node {
         }
         //GoAI.piirraLauta(simulateBoard);
         //System.out.println(pisteet + ", ");
+        
         if (pisteet > 0) {
             return 1;
         }
         return -1;
+    }
+    public static double voitonTodennakoisyys(Node node) {
+        double voitot = 1.0;
+        double vierailut = 1.0;
+        if (node.children == null) return 1;
+        for (int i = 0; i < node.children.length; i++) {
+            vierailut += node.children[i].vierailut;
+            voitot += node.children[i].voitot;               
+        }
+        return voitot/vierailut;
     }
 
 }
