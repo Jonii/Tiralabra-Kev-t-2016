@@ -136,7 +136,7 @@ public class GoAI {
     private static void pelaaSiirtoKoneelle() {
         Node root = new Node(lauta);
         long now = System.currentTimeMillis();
-        int miettimisAika = 13000;
+        int miettimisAika = 400;
         int n = 1;
         while (System.currentTimeMillis() < now + miettimisAika) {
             root.selectAction();
@@ -154,8 +154,8 @@ public class GoAI {
             return;
         }
 
-        x = uusiNode.x;
-        y = uusiNode.y;
+        x = uusiNode.getX();
+        y = uusiNode.getY();
         
         if (1.0 * uusiNode.voitot / uusiNode.vierailut < 0.2) {
             resign = lauta.getTurn();
@@ -170,17 +170,17 @@ public class GoAI {
             passauksia = 0;
             int length = 0;
             if (diagnostiikkaNode != null) {
-                length = diagnostiikkaNode.children.length;
+                length = diagnostiikkaNode.children.getKoko();
             }
 
             for (int i = 0; i < length; i++) {
-                x = diagnostiikkaNode.children[i].x;
-                y = diagnostiikkaNode.children[i].y;
+                x = diagnostiikkaNode.children.getNode(i).getX();
+                y = diagnostiikkaNode.children.getNode(i).getY();
                 if ((x == -1) && (y == -1)) {
                     passauksia++;
                 } else {
-                    apulautaVierailut[x][y] = diagnostiikkaNode.children[i].vierailut;
-                    apulautaVoitot[x][y] = diagnostiikkaNode.children[i].voitot;
+                    apulautaVierailut[x][y] = diagnostiikkaNode.children.getNode(i).vierailut;
+                    apulautaVoitot[x][y] = diagnostiikkaNode.children.getNode(i).voitot;
                 }
             }
         }
