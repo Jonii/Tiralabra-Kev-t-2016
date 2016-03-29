@@ -21,6 +21,7 @@ public class Node {
     private int x, y, simple;
     private int raveVierailut;
     private int raveVoitot;
+    private static int raveSuoritukset = 300;
 
     public int getX() {
         return x;
@@ -98,10 +99,9 @@ public class Node {
         visited.add(this);
         Node currentNode = this;
         int tulos;
-        int rave = 100;
 
         while (!currentNode.isLeaf()) {
-            if (vierailut > rave) {
+            if (vierailut > raveSuoritukset) {
                 currentNode = currentNode.select();
             }
             else {
@@ -111,7 +111,7 @@ public class Node {
         }
         currentNode.expand();
         if (!currentNode.isScoreable()) {
-            if (vierailut > rave) {
+            if (vierailut > raveSuoritukset) {
                 currentNode = currentNode.select();
             }
             else {
@@ -121,7 +121,7 @@ public class Node {
         }
         tulos = currentNode.simulate();
 
-        if (vierailut > rave) {
+        if (vierailut > raveSuoritukset) {
             update(visited, tulos);
         }
         else {
@@ -224,7 +224,7 @@ public class Node {
     }
 
     private double raveB(int raveSimulaatioita) {
-        return Math.min(1, 1.0 * raveSimulaatioita / 50);
+        return Math.min(1, 1.0 * raveSimulaatioita / raveSuoritukset);
     }
 
     /**
