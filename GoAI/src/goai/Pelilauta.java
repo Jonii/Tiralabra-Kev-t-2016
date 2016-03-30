@@ -51,7 +51,9 @@ public class Pelilauta {
     public static final int MUSTA = 1;
     public static final int VALKEA = 2;
     public static final int TYHJA = 0;
-    private final int koko;
+    
+    private static int koko;
+    
     private Alkio[][] lautaTaulu;
     private int pelaaja;
     private boolean passedOnLastMove;
@@ -76,7 +78,9 @@ public class Pelilauta {
     }
 
     public Pelilauta(int koko) {
-        this.koko = koko;
+        Pelilauta.koko = koko;
+        Node.laudanKoko = koko;
+        
         this.komi = 0.5;
         this.edellinen = -1;
         this.sitaEdellinen = -1;
@@ -191,7 +195,7 @@ public class Pelilauta {
      * Palauttaa listattuna laudan tyhjät risteykset.
      *
      * @return Tyhjät risteykset listattuna simple-formaattia käyttäen. Käytä
-     * transformToXCoordinate ja transformToYCoordinate() funktioita.
+ toX ja toY() funktioita.
      */
     public int[] getMahdollisetPisteet() {
         int pos = 0;
@@ -200,7 +204,7 @@ public class Pelilauta {
         for (int i = 0; i < koko; i++) {
             for (int j = 0; j < koko; j++) {
                 if (PlacementHandler.onkoLaillinenSiirto(this, i, j)) {
-                    taulu[pos] = transformToSimpleCoordinates(i, j);
+                    taulu[pos] = toSimple(i, j);
                     pos++;
                 }
             }
@@ -219,7 +223,7 @@ public class Pelilauta {
      *
      * @return laudan sivus pituus.
      */
-    public int getKoko() {
+    public static int getKoko() {
         return koko;
     }
     
@@ -283,45 +287,45 @@ public class Pelilauta {
     }
     /**
      * Apufunktioita koordinaattien muuttamiseen yhdeksi int-arvoksi ja takaisin.
-     * transformToSimpleCoordinates(int, int) ottaa koordinaatit x ja y, ja palauttaa
-     * yhden numeron, simplen, joka koodaa tätä koordinaattiyhdistelmää.
-     * transformToXCoordinate(int) ottaa simplen, ja palauttaa sitä vastaavan x-koordinaatin.
-     * transformToYCoordinate(int) ottaa simplen, ja palauttaa sitä vastaavan y-koordinaatin.
+     * toSimple(int, int) ottaa koordinaatit x ja y, ja palauttaa
+ yhden numeron, simplen, joka koodaa tätä koordinaattiyhdistelmää.
+ toX(int) ottaa simplen, ja palauttaa sitä vastaavan x-koordinaatin.
+ toY(int) ottaa simplen, ja palauttaa sitä vastaavan y-koordinaatin.
      * 
      * @param x 0:sta lähtevä x-koordinaatti pelilaudalla
      * @param y 0:sta lähtevä y-koordinaatti pelilaudalla
      * @return nämä numerot 1 to 1 koodaava simple-koordinaatti
      */
-    public int transformToSimpleCoordinates(int x, int y) {
-        if (x < 0 || x >= koko || y < 0 || y >= koko) return -1;
-        return y + koko * x;
+    public static int toSimple(int x, int y) {
+        if (x < 0 || x >= Pelilauta.getKoko() || y < 0 || y >= Pelilauta.getKoko()) return -1;
+        return y + Pelilauta.getKoko() * x;
     }
     
     /**
      * Apufunktioita koordinaattien muuttamiseen yhdeksi int-arvoksi ja takaisin.
-     * transformToSimpleCoordinates(int, int) ottaa koordinaatit x ja y, ja palauttaa
-     * yhden numeron, simplen, joka koodaa tätä koordinaattiyhdistelmää.
-     * transformToXCoordinate(int) ottaa simplen, ja palauttaa sitä vastaavan x-koordinaatin.
-     * transformToYCoordinate(int) ottaa simplen, ja palauttaa sitä vastaavan y-koordinaatin.
+     * toSimple(int, int) ottaa koordinaatit x ja y, ja palauttaa
+ yhden numeron, simplen, joka koodaa tätä koordinaattiyhdistelmää.
+ toX(int) ottaa simplen, ja palauttaa sitä vastaavan x-koordinaatin.
+ toY(int) ottaa simplen, ja palauttaa sitä vastaavan y-koordinaatin.
      * 
-     * @param simple Simple-arvo, joka on saatu transformToSimpleCoordinates() funktiolla.
+     * @param simple Simple-arvo, joka on saatu toSimple() funktiolla.
      * @return simple-arvoa vastaava X-koordinaatti.
      */
-    public int transformToXCoordinate(int simple) {
-        return simple / koko;
+    public static int toX(int simple) {
+        return simple / Pelilauta.getKoko();
     }
     /**
      * Apufunktioita koordinaattien muuttamiseen yhdeksi int-arvoksi ja takaisin.
-     * transformToSimpleCoordinates(int, int) ottaa koordinaatit x ja y, ja palauttaa
-     * yhden numeron, simplen, joka koodaa tätä koordinaattiyhdistelmää.
-     * transformToXCoordinate(int) ottaa simplen, ja palauttaa sitä vastaavan x-koordinaatin.
-     * transformToYCoordinate(int) ottaa simplen, ja palauttaa sitä vastaavan y-koordinaatin.
+     * toSimple(int, int) ottaa koordinaatit x ja y, ja palauttaa
+ yhden numeron, simplen, joka koodaa tätä koordinaattiyhdistelmää.
+ toX(int) ottaa simplen, ja palauttaa sitä vastaavan x-koordinaatin.
+ toY(int) ottaa simplen, ja palauttaa sitä vastaavan y-koordinaatin.
      * 
-     * @param simple Simple-arvo, joka on saatu transformToSimpleCoordinates() funktiolla.
+     * @param simple Simple-arvo, joka on saatu toSimple() funktiolla.
      * @return simple-arvoa vastaava Y-koordinaatti.
      */
-    public int transformToYCoordinate(int simple) {
-        return simple % koko;
+    public static int toY(int simple) {
+        return simple % Pelilauta.getKoko();
     }
 
     /**
@@ -329,45 +333,45 @@ public class Pelilauta {
      * @param simple simple-arvo
      * @return uusi simple-koordinaatti halutussa suunnassa, tai -1 jos laudan ulkopuolella
      */
-    public int moveLeft(int simple) {
-        if (simple < 0 || simple >= getKoko() * getKoko()) {
+    public static int moveLeft(int simple) {
+        if (simple < 0 || simple >= Pelilauta.getKoko() * Pelilauta.getKoko()) {
             return -1;
         }
-        return transformToSimpleCoordinates(transformToXCoordinate(simple) - 1, transformToYCoordinate(simple));
+        return toSimple(toX(simple) - 1, toY(simple));
     }
     /**
      * apufunktioita simple-koordinaatistossa hyppäämiseen sivulle, ylös tai alas.
      * @param simple simple-arvo
      * @return uusi simple-koordinaatti halutussa suunnassa, tai -1 jos laudan ulkopuolella
      */
-    public int moveRight(int simple) {
-        if (simple < 0 || simple >= getKoko() * getKoko()) {
+    public static int moveRight(int simple) {
+        if (simple < 0 || simple >= Pelilauta.getKoko() * Pelilauta.getKoko()) {
             return -1;
         }
-        return transformToSimpleCoordinates(transformToXCoordinate(simple) + 1, transformToYCoordinate(simple));
+        return toSimple(toX(simple) + 1, toY(simple));
     }    
     /**
      * apufunktioita simple-koordinaatistossa hyppäämiseen sivulle, ylös tai alas.
      * @param simple simple-arvo
      * @return uusi simple-koordinaatti halutussa suunnassa, tai -1 jos laudan ulkopuolella
      */
-    public int moveUp(int simple) {
-        if (simple < 0 || simple >= getKoko() * getKoko()) {
+    public static int moveUp(int simple) {
+        if (simple < 0 || simple >= Pelilauta.getKoko() * Pelilauta.getKoko()) {
             return -1;
         }
  
-        return transformToSimpleCoordinates(transformToXCoordinate(simple), transformToYCoordinate(simple) + 1);
+        return toSimple(toX(simple), toY(simple) + 1);
     }
     /**
      * apufunktioita simple-koordinaatistossa hyppäämiseen sivulle, ylös tai alas.
      * @param simple simple-arvo
      * @return uusi simple-koordinaatti halutussa suunnassa, tai -1 jos laudan ulkopuolella
      */
-    public int moveDown(int simple) {
-        if (simple < 0 || simple >= getKoko() * getKoko()) {
+    public static int moveDown(int simple) {
+        if (simple < 0 || simple >= Pelilauta.getKoko() * Pelilauta.getKoko()) {
             return -1;
         }
-        return transformToSimpleCoordinates(transformToXCoordinate(simple), transformToYCoordinate(simple) - 1);
+        return toSimple(toX(simple), toY(simple) - 1);
     }
 
 }

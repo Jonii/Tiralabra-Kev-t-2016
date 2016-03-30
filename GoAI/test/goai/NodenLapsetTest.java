@@ -60,10 +60,10 @@ public class NodenLapsetTest {
      */
     @Test
     public void testFind() {
-        assertTrue(children.find(lauta.transformToSimpleCoordinates(4, 4)) == 0);
-        assertTrue(children.find(lauta.transformToSimpleCoordinates(3, 4)) == -1);
-        assertTrue(children.find(lauta.transformToSimpleCoordinates(3, 3)) == 1);
-        assertTrue(children.find(lauta.transformToSimpleCoordinates(0, 0)) == 4);
+        assertTrue(children.find(lauta.toSimple(4, 4)) == 0);
+        assertTrue(children.find(lauta.toSimple(3, 4)) == -1);
+        assertTrue(children.find(lauta.toSimple(3, 3)) == 1);
+        assertTrue(children.find(lauta.toSimple(0, 0)) == 4);
     }
     
 }

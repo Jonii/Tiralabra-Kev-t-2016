@@ -38,7 +38,7 @@ public class PlacementHandler {
 
         //kon tarkistus
         int uusiX, uusiY;
-        if (lauta.transformToSimpleCoordinates(x, y) == lauta.getKo()) {
+        if (lauta.toSimple(x, y) == lauta.getKo()) {
             return false;
         }
 
@@ -142,7 +142,7 @@ public class PlacementHandler {
         }
         lauta.setKo(-1);
         lauta.setSitaEdellinen(lauta.getEdellinen());
-        lauta.setEdellinen(lauta.transformToSimpleCoordinates(x, y));
+        lauta.setEdellinen(lauta.toSimple(x, y));
         uusiX = x - 1;
         uusiY = y;
         if (lauta.getRisteys(uusiX, uusiY) != pelaaja && lauta.getRisteys(uusiX, uusiY) != Pelilauta.TYHJA) {
@@ -213,14 +213,14 @@ public class PlacementHandler {
 
         int currentX, currentY;
 
-        int current = lauta.transformToSimpleCoordinates(x, y);
+        int current = lauta.toSimple(x, y);
         pino.add(current);
 
         while (pino.IsNotEmpty()) {
             current = pino.pop();
 
-            currentX = lauta.transformToXCoordinate(current);
-            currentY = lauta.transformToYCoordinate(current);
+            currentX = lauta.toX(current);
+            currentY = lauta.toY(current);
 
             if (visited[current]) {
                 continue;
@@ -257,7 +257,7 @@ public class PlacementHandler {
 
         while (kiviKetju.IsNotEmpty()) {
             current = kiviKetju.pop();
-            lauta.setVapaus(lauta.transformToXCoordinate(current), lauta.transformToYCoordinate(current), vapaudet);
+            lauta.setVapaus(lauta.toX(current), lauta.toY(current), vapaudet);
         }
     }
 
@@ -276,13 +276,13 @@ public class PlacementHandler {
 
         int poistettujenMaara = 0;
 
-        int current = lauta.transformToSimpleCoordinates(x, y);
+        int current = lauta.toSimple(x, y);
         pino.add(current);
 
         while (pino.IsNotEmpty()) {
             current = pino.pop();
-            currentX = lauta.transformToXCoordinate(current);
-            currentY = lauta.transformToYCoordinate(current);
+            currentX = lauta.toX(current);
+            currentY = lauta.toY(current);
 
             if (visited[current]) {
                 continue;
@@ -317,7 +317,7 @@ public class PlacementHandler {
 
         }
         if (poistettujenMaara == 1) {
-            lauta.setKo(lauta.transformToSimpleCoordinates(x, y));
+            lauta.setKo(lauta.toSimple(x, y));
         }
     }
 
@@ -371,20 +371,20 @@ public class PlacementHandler {
 
         int currentX, currentY;
         int current;
-        if (lauta.moveLeft(lauta.transformToSimpleCoordinates(x, y)) != -1) {
-            current = lauta.moveLeft(lauta.transformToSimpleCoordinates(x, y));
+        if (lauta.moveLeft(lauta.toSimple(x, y)) != -1) {
+            current = lauta.moveLeft(lauta.toSimple(x, y));
             alkupistePino.add(current);
         }
-        if (lauta.moveRight(lauta.transformToSimpleCoordinates(x, y)) != -1) {
-            current = lauta.moveRight(lauta.transformToSimpleCoordinates(x, y));
+        if (lauta.moveRight(lauta.toSimple(x, y)) != -1) {
+            current = lauta.moveRight(lauta.toSimple(x, y));
             alkupistePino.add(current);
         }
-        if (lauta.moveUp(lauta.transformToSimpleCoordinates(x, y)) != -1) {
-            current = lauta.moveUp(lauta.transformToSimpleCoordinates(x, y));
+        if (lauta.moveUp(lauta.toSimple(x, y)) != -1) {
+            current = lauta.moveUp(lauta.toSimple(x, y));
             alkupistePino.add(current);
         }
-        if (lauta.moveDown(lauta.transformToSimpleCoordinates(x, y)) != -1) {
-            current = lauta.moveDown(lauta.transformToSimpleCoordinates(x, y));
+        if (lauta.moveDown(lauta.toSimple(x, y)) != -1) {
+            current = lauta.moveDown(lauta.toSimple(x, y));
             alkupistePino.add(current);
         }
         while (alkupistePino.IsNotEmpty()) {            // Käydään kaikki ympäröivät kiviryhmät läpi erikseen 
@@ -394,8 +394,8 @@ public class PlacementHandler {
 
             while (pino.IsNotEmpty()) {
                 current = pino.pop();
-                currentX = lauta.transformToXCoordinate(current);
-                currentY = lauta.transformToYCoordinate(current);
+                currentX = lauta.toX(current);
+                currentY = lauta.toY(current);
 
                 if (iteraatioTaulu[current] == iteraatio) {
                     continue;
@@ -403,27 +403,27 @@ public class PlacementHandler {
 
                 uusiSimple = lauta.moveLeft(current);
                 if (uusiSimple != -1) {
-                    if (lauta.getRisteys(lauta.transformToXCoordinate(uusiSimple), lauta.transformToYCoordinate(uusiSimple)) == Pelilauta.TYHJA) {
+                    if (lauta.getRisteys(lauta.toX(uusiSimple), lauta.toY(uusiSimple)) == Pelilauta.TYHJA) {
                         if (iteraatioTaulu[uusiSimple] == 0) {
                             lauta.changeTurn();
-                            if (onkoLaillinenSiirto(lauta, lauta.transformToXCoordinate(uusiSimple), lauta.transformToYCoordinate(uusiSimple))) {
+                            if (onkoLaillinenSiirto(lauta, lauta.toX(uusiSimple), lauta.toY(uusiSimple))) {
                                 iteraatio++;
                                 iteraatioTaulu[uusiSimple] = iteraatio;
                             }
                             lauta.changeTurn();
 
                         }
-                    } else if (lauta.getRisteys(lauta.transformToXCoordinate(uusiSimple), lauta.transformToYCoordinate(uusiSimple)) == pelaaja) {
+                    } else if (lauta.getRisteys(lauta.toX(uusiSimple), lauta.toY(uusiSimple)) == pelaaja) {
                         pino.add(uusiSimple);
                     }
                     
                 }
                 uusiSimple = lauta.moveRight(current);
                 if (uusiSimple != -1) {
-                    if (lauta.getRisteys(lauta.transformToXCoordinate(uusiSimple), lauta.transformToYCoordinate(uusiSimple)) == Pelilauta.TYHJA) {
+                    if (lauta.getRisteys(lauta.toX(uusiSimple), lauta.toY(uusiSimple)) == Pelilauta.TYHJA) {
                         if (iteraatioTaulu[uusiSimple] == 0) {
                             lauta.changeTurn();
-                            if (onkoLaillinenSiirto(lauta, lauta.transformToXCoordinate(uusiSimple), lauta.transformToYCoordinate(uusiSimple))) {
+                            if (onkoLaillinenSiirto(lauta, lauta.toX(uusiSimple), lauta.toY(uusiSimple))) {
                                 iteraatio++;
                                 iteraatioTaulu[uusiSimple] = iteraatio;
                             }
@@ -432,39 +432,39 @@ public class PlacementHandler {
                         }
                     } 
                     
-                    else if (lauta.getRisteys(lauta.transformToXCoordinate(uusiSimple), lauta.transformToYCoordinate(uusiSimple)) == pelaaja) {
+                    else if (lauta.getRisteys(lauta.toX(uusiSimple), lauta.toY(uusiSimple)) == pelaaja) {
                         pino.add(uusiSimple);
                     }                    
                 }
                 uusiSimple = lauta.moveUp(current);
                 if (uusiSimple != -1) {
-                    if (lauta.getRisteys(lauta.transformToXCoordinate(uusiSimple), lauta.transformToYCoordinate(uusiSimple)) == Pelilauta.TYHJA) {
+                    if (lauta.getRisteys(lauta.toX(uusiSimple), lauta.toY(uusiSimple)) == Pelilauta.TYHJA) {
                         if (iteraatioTaulu[uusiSimple] == 0) {
                             lauta.changeTurn();
-                            if (onkoLaillinenSiirto(lauta, lauta.transformToXCoordinate(uusiSimple), lauta.transformToYCoordinate(uusiSimple))) {
+                            if (onkoLaillinenSiirto(lauta, lauta.toX(uusiSimple), lauta.toY(uusiSimple))) {
                                 iteraatio++;
                                 iteraatioTaulu[uusiSimple] = iteraatio;
                             }
                             lauta.changeTurn();
 
                         }
-                    } else if (lauta.getRisteys(lauta.transformToXCoordinate(uusiSimple), lauta.transformToYCoordinate(uusiSimple)) == pelaaja) {
+                    } else if (lauta.getRisteys(lauta.toX(uusiSimple), lauta.toY(uusiSimple)) == pelaaja) {
                         pino.add(uusiSimple);
                     }                    
                 }
                 uusiSimple = lauta.moveDown(current);
                 if (uusiSimple != -1) {
-                    if (lauta.getRisteys(lauta.transformToXCoordinate(uusiSimple), lauta.transformToYCoordinate(uusiSimple)) == Pelilauta.TYHJA) {
+                    if (lauta.getRisteys(lauta.toX(uusiSimple), lauta.toY(uusiSimple)) == Pelilauta.TYHJA) {
                         if (iteraatioTaulu[uusiSimple] == 0) {
                             lauta.changeTurn();
-                            if (onkoLaillinenSiirto(lauta, lauta.transformToXCoordinate(uusiSimple), lauta.transformToYCoordinate(uusiSimple))) {
+                            if (onkoLaillinenSiirto(lauta, lauta.toX(uusiSimple), lauta.toY(uusiSimple))) {
                                 iteraatio++;
                                 iteraatioTaulu[uusiSimple] = iteraatio;
                             }
                             lauta.changeTurn();
 
                         }
-                    } else if (lauta.getRisteys(lauta.transformToXCoordinate(uusiSimple), lauta.transformToYCoordinate(uusiSimple)) == pelaaja) {
+                    } else if (lauta.getRisteys(lauta.toX(uusiSimple), lauta.toY(uusiSimple)) == pelaaja) {
                         pino.add(uusiSimple);
                     }                    
                 }

@@ -14,14 +14,18 @@ import logic.PlacementHandler;
 public class Node {
 
     NodenLapset children;
-    Pelilauta lauta;
+
     static Random r = new Random();
     static double epsilon = 1e-6;
-    private boolean scoreable;
+    private boolean noLegalMovesAvailable;
     private int x, y, simple;
     private int raveVierailut;
     private int raveVoitot;
-    private static int raveSuoritukset = 300;
+
+    public static int raveSuoritukset = 1000;
+    public static int branchingFactor = 50;
+    public static int laudanKoko;
+    private int turn;
 
     public int getX() {
         return x;
@@ -40,30 +44,34 @@ public class Node {
     }
 
     public int getSimple() {
-        return lauta.transformToSimpleCoordinates(x, y);
+        return Pelilauta.toSimple(x, y);
     }
 
     public void setSimple(int simple) {
-        this.x = lauta.transformToXCoordinate(simple);
-        this.y = lauta.transformToYCoordinate(simple);
+        this.x = Pelilauta.toX(simple);
+        this.y = Pelilauta.toY(simple);
     }
 
     int vierailut, voitot;
 
-    public boolean isScoreable() {
-        return scoreable;
+    public boolean isNoLegalMovesAvailable() {
+        return noLegalMovesAvailable;
     }
 
-    public void setScoreable(boolean scoreable) {
-        this.scoreable = scoreable;
+    public void setNoLegalMovesAvailable(boolean noLegalMovesAvailable) {
+        this.noLegalMovesAvailable = noLegalMovesAvailable;
+    }
+
+    public int getTurn() {
+        return turn;
+    }
+
+    public void setTurn(int turn) {
+        this.turn = turn;
     }
 
     public Node() {
-        this(new Pelilauta());
-    }
 
-    public Node(Pelilauta lauta) {
-        this.lauta = lauta.kopioi();
     }
 
     /**
@@ -76,14 +84,13 @@ public class Node {
      * @param y
      */
     public Node(Pelilauta lauta, int x, int y) {
-        this.lauta = lauta.kopioi();
         this.x = x;
         this.y = y;
-        if (PlacementHandler.onkoLaillinenSiirto(this.lauta, x, y)) {
-            PlacementHandler.pelaaSiirto(this.lauta, x, y);
-        } else {
-            PlacementHandler.pass(this.lauta);
-        }
+        this.simple = Pelilauta.toSimple(x, y);
+
+        lauta.changeTurn();
+        this.turn = lauta.getTurn();
+        lauta.changeTurn();
     }
 
     /**
@@ -91,8 +98,11 @@ public class Node {
      * loppuun saakka, ja päivittää jokaisen MC-puun solmun matkan varrella
      * tällä tuloksella.
      */
-    public void selectAction() {
-        if (isScoreable()) {
+    public void selectAction(Pelilauta lauta) {
+        Pelilauta currentLauta = lauta.kopioi();
+        int[] amafTaulu = new int[Pelilauta.getKoko() * Pelilauta.getKoko()];
+
+        if (isNoLegalMovesAvailable()) {
             return;
         }
         Pino<Node> visited = new Pino<>();
@@ -101,31 +111,39 @@ public class Node {
         int tulos;
 
         while (!currentNode.isLeaf()) {
-            if (vierailut > raveSuoritukset) {
+            if (vierailut >= 5 * raveSuoritukset) {
                 currentNode = currentNode.select();
-            }
-            else {
-                currentNode = currentNode.selectRAVE(vierailut);
+                PlacementHandler.pelaaSiirto(currentLauta, currentNode.getX(), currentNode.getY());
+            } else {
+                currentNode = currentNode.selectRAVE(currentNode.vierailut);
+                if ((Pelilauta.toSimple(currentNode.getX(), currentNode.getY()) > -1) && (amafTaulu[Pelilauta.toSimple(currentNode.getX(), currentNode.getY())] == 0)) {
+                    amafTaulu[Pelilauta.toSimple(currentNode.getX(), currentNode.getY())] = currentNode.getTurn();
+                }
+                PlacementHandler.pelaaSiirto(currentLauta, currentNode.getX(), currentNode.getY());
             }
             visited.add(currentNode);
         }
-        currentNode.expand();
-        if (!currentNode.isScoreable()) {
-            if (vierailut > raveSuoritukset) {
-                currentNode = currentNode.select();
-            }
-            else {
-                currentNode = currentNode.selectRAVE(vierailut);
-            }
-            visited.add(currentNode);
-        }
-        tulos = currentNode.simulate();
+        currentNode.expand(currentLauta);
 
-        if (vierailut > raveSuoritukset) {
-            update(visited, tulos);
+        if (vierailut >= 5 * raveSuoritukset) {
+            currentNode = currentNode.select();
+            PlacementHandler.pelaaSiirto(currentLauta, currentNode.getX(), currentNode.getY());
+        } else {
+            currentNode = currentNode.selectRAVE(currentNode.vierailut);
+            if ((Pelilauta.toSimple(currentNode.getX(), currentNode.getY()) > -1) && (amafTaulu[Pelilauta.toSimple(currentNode.getX(), currentNode.getY())] == 0)) {
+                amafTaulu[Pelilauta.toSimple(currentNode.getX(), currentNode.getY())] = currentNode.getTurn();
+            }
+            PlacementHandler.pelaaSiirto(currentLauta, currentNode.getX(), currentNode.getY());
         }
-        else {
-            updateRAVE(visited, tulos);
+        
+        visited.add(currentNode);
+
+        tulos = currentNode.simulate(currentLauta, amafTaulu);
+
+        if (vierailut >= 5 * raveSuoritukset) {
+            update(visited, tulos);
+        } else {
+            updateRAVE(visited, tulos, amafTaulu);
         }
         return;
     }
@@ -135,57 +153,47 @@ public class Node {
         while (visited.IsNotEmpty()) {
             currentNode = visited.pop();
             currentNode.vierailut++;
-            if ((currentNode.lauta.getTurn() == Pelilauta.VALKEA && tulos > 0)
-                    || (currentNode.lauta.getTurn() == Pelilauta.MUSTA && tulos < 0)) {
+            if ((currentNode.getTurn() == Pelilauta.VALKEA && tulos > 0)
+                    || (currentNode.getTurn() == Pelilauta.MUSTA && tulos < 0)) {
                 currentNode.voitot++;
             }
         }
     }
 
-    private void updateRAVE(Pino<Node> visited, int tulos) {
+    private void updateRAVE(Pino<Node> visited, int tulos, int[] amafTaulu) {
         Node currentNode;
-        Pino<Node> juggleOne = new Pino<>();
-        Pino<Node> juggleTwo = new Pino<>();
-        Node raveUpdateNode;
-        int raveUpdateIndex;
+
+        int lapsiIndeksi;
 
         while (visited.IsNotEmpty()) {
             currentNode = visited.pop();
             currentNode.vierailut++;
-            if ((currentNode.lauta.getTurn() == Pelilauta.VALKEA && tulos > 0)
-                    || (currentNode.lauta.getTurn() == Pelilauta.MUSTA && tulos < 0)) {
+            if ((currentNode.getTurn() == Pelilauta.VALKEA && tulos > 0)
+                    || (currentNode.getTurn() == Pelilauta.MUSTA && tulos < 0)) {
                 currentNode.voitot++;
             }
-            if (juggleOne.IsNotEmpty()) {
-                juggleTwo.add(currentNode);
-                while (juggleOne.IsNotEmpty()) {
-                    raveUpdateNode = juggleOne.pop();
-                    juggleTwo.add(raveUpdateNode);
-                    raveUpdateIndex = currentNode.children.find(raveUpdateNode.getSimple());
-                    if (raveUpdateIndex != -1) {
-                        currentNode.children.getNode(raveUpdateIndex).raveVierailut++;
-                        if ((currentNode.children.getNode(raveUpdateIndex).lauta.getTurn() == Pelilauta.VALKEA && tulos > 0)
-                                || (currentNode.children.getNode(raveUpdateIndex).lauta.getTurn() == Pelilauta.MUSTA && tulos < 0)) {
-                            currentNode.children.getNode(raveUpdateIndex).raveVoitot++;
-                        }
-                    }                    
+
+            lapsiIndeksi = 0;
+            for (int i = Pelilauta.getKoko() * Pelilauta.getKoko() - 1; i >= 0; i--) {
+                if (currentNode.children == null || lapsiIndeksi == currentNode.children.getKoko()) {
+                    break;
                 }
-            } else {
-                juggleOne.add(currentNode);
-                while (juggleTwo.IsNotEmpty()) {
-                    raveUpdateNode = juggleTwo.pop();
-                    juggleOne.add(raveUpdateNode);
-                    raveUpdateIndex = currentNode.children.find(raveUpdateNode.getSimple());
-                    if (raveUpdateIndex != -1) {
-                        currentNode.children.getNode(raveUpdateIndex).raveVierailut++;
-                        if ((currentNode.children.getNode(raveUpdateIndex).lauta.getTurn() == Pelilauta.VALKEA && tulos > 0)
-                                || (currentNode.children.getNode(raveUpdateIndex).lauta.getTurn() == Pelilauta.MUSTA && tulos < 0)) {
-                            currentNode.children.getNode(raveUpdateIndex).raveVoitot++;
+
+                if (currentNode.children.getNode(lapsiIndeksi).getSimple() > i) {
+                    throw new IllegalStateException("Rave rikki");
+                }
+                if (currentNode.children.getNode(lapsiIndeksi).getSimple() == i) {
+                    if (amafTaulu[i] == currentNode.getTurn()) {
+                        currentNode.children.getNode(lapsiIndeksi).raveVierailut++;
+                        if ((currentNode.getTurn() == Pelilauta.MUSTA && tulos > 0) // Värit käännetty koska kyse lapsista.
+                                || (currentNode.getTurn() == Pelilauta.VALKEA && tulos < 0)) { // hiukan epäselvä tapa mutta toiminee.
+                            currentNode.children.getNode(lapsiIndeksi).raveVoitot++;
                         }
                     }
+                    lapsiIndeksi++;
+
                 }
             }
-            
         }
     }
 
@@ -200,7 +208,7 @@ public class Node {
      */
     private Node selectRAVE(int raveSimulaatioita) {
         Node selected = null;
-        if (scoreable) {
+        if (noLegalMovesAvailable) {
             return null;
         }
         double bestValue = Double.MIN_VALUE;
@@ -210,7 +218,7 @@ public class Node {
             double raveValue
                     = raveB(raveSimulaatioita) * (c.raveVoitot / (c.raveVierailut + epsilon))
                     + (1 - raveB(raveSimulaatioita)) * (c.voitot / (c.vierailut + epsilon))
-                    + Math.sqrt(Math.log(vierailut + 1) / (c.vierailut + epsilon))
+                    + 0.1 * Math.sqrt(Math.log(vierailut + 1) / (c.vierailut + epsilon)) // exploration perhaps unnecessary in RAVE?
                     + r.nextDouble() * epsilon;
             // small random number to break ties randomly in unexpanded nodes
             // System.out.println("UCT value = " + uctValue);
@@ -238,7 +246,7 @@ public class Node {
      */
     private Node select() {
         Node selected = null;
-        if (scoreable) {
+        if (noLegalMovesAvailable) {
             return null;
         }
         double bestValue = Double.MIN_VALUE;
@@ -264,114 +272,32 @@ public class Node {
      * Päättää mitä siirtoja tästä nodesta eteenpäin ylipäätään tullaan
      * harkitsemaan. Tämänhetkinen versio ottaa satunnaisesti 20 pistettä.
      */
-    public void expand() {
-        if (scoreable) {
-            return;
-        }
-
-        boolean[] mahdollisetPisteet = new boolean[lauta.getKoko() * lauta.getKoko()];
+    public void expand(Pelilauta lauta) {
+        boolean[] mahdollisetPisteet = new boolean[Pelilauta.getKoko() * Pelilauta.getKoko()];
         int pisteita = 0;
         Pino<Node> lapsiJono = new Pino<>();
-        int[] mahdolliset = lauta.getMahdollisetPisteet();
 
-        if (mahdolliset == null) {
-            scoreable = true;
-            return;
+        for (int i = 0; i < mahdollisetPisteet.length; i++) {
+            mahdollisetPisteet[i] = true;
         }
-
-        for (int i = 0; i < mahdolliset.length; i++) {
-            mahdollisetPisteet[mahdolliset[i]] = true;
-        }
-        int offset = r.nextInt(mahdolliset.length);
+        int offset = r.nextInt(mahdollisetPisteet.length);
         int indeksi = 0;
-        int x, y;
-        int simple;
-        //lisätään edellisten siirtojen ympäristöt. Tämä bugaa jostain syystä.
-        simple = lauta.moveDown(lauta.getEdellinen());
-        if (lisaaJonoon(simple, lapsiJono, mahdollisetPisteet)) {
-            pisteita++;
-        }
+        int uusiX, uusiY;
+        int uusiSimple;
 
-        simple = lauta.moveUp(lauta.getEdellinen());
-        if (lisaaJonoon(simple, lapsiJono, mahdollisetPisteet)) {
-            pisteita++;
-        }
+        while ((indeksi < mahdollisetPisteet.length) && (pisteita < branchingFactor)) {
+            uusiX = Pelilauta.toX((indeksi + offset) % mahdollisetPisteet.length);
+            uusiY = Pelilauta.toY((indeksi + offset) % mahdollisetPisteet.length);
+            if (mahdollisetPisteet[(indeksi + offset) % mahdollisetPisteet.length]) {
+                mahdollisetPisteet[(indeksi + offset) % mahdollisetPisteet.length] = false; //Varmistetaan että samaa siirtoa ei lasketa moneen kertaan
 
-        simple = lauta.moveLeft(lauta.getEdellinen());
-        if (lisaaJonoon(simple, lapsiJono, mahdollisetPisteet)) {
-            pisteita++;
-        }
-
-        simple = lauta.moveRight(lauta.getEdellinen());
-        if (lisaaJonoon(simple, lapsiJono, mahdollisetPisteet)) {
-            pisteita++;
-        }
-
-        simple = lauta.moveRight(lauta.moveRight(lauta.getEdellinen()));
-        if (lisaaJonoon(simple, lapsiJono, mahdollisetPisteet)) {
-            pisteita++;
-        }
-
-        simple = lauta.moveUp(lauta.moveRight(lauta.getEdellinen()));
-        if (lisaaJonoon(simple, lapsiJono, mahdollisetPisteet)) {
-            pisteita++;
-        }
-
-        simple = lauta.moveDown(lauta.moveRight(lauta.getEdellinen()));
-        if (lisaaJonoon(simple, lapsiJono, mahdollisetPisteet)) {
-            pisteita++;
-        }
-
-        simple = lauta.moveLeft(lauta.moveLeft(lauta.getEdellinen()));
-        if (lisaaJonoon(simple, lapsiJono, mahdollisetPisteet)) {
-            pisteita++;
-        }
-
-        simple = lauta.moveUp(lauta.moveLeft(lauta.getEdellinen()));
-        if (lisaaJonoon(simple, lapsiJono, mahdollisetPisteet)) {
-            pisteita++;
-        }
-
-        simple = lauta.moveUp(lauta.moveUp(lauta.getEdellinen()));
-        if (lisaaJonoon(simple, lapsiJono, mahdollisetPisteet)) {
-            pisteita++;
-        }
-
-        simple = lauta.moveDown(lauta.moveDown(lauta.getEdellinen()));
-        if (lisaaJonoon(simple, lapsiJono, mahdollisetPisteet)) {
-            pisteita++;
-        }
-
-        simple = lauta.moveDown(lauta.getSitaEdellinen());
-        if (lisaaJonoon(simple, lapsiJono, mahdollisetPisteet)) {
-            pisteita++;
-        }
-
-        simple = lauta.moveUp(lauta.getSitaEdellinen());
-        if (lisaaJonoon(simple, lapsiJono, mahdollisetPisteet)) {
-            pisteita++;
-        }
-
-        simple = lauta.moveLeft(lauta.getSitaEdellinen());
-        if (lisaaJonoon(simple, lapsiJono, mahdollisetPisteet)) {
-            pisteita++;
-        }
-
-        simple = lauta.moveRight(lauta.getSitaEdellinen());
-        if (lisaaJonoon(simple, lapsiJono, mahdollisetPisteet)) {
-            pisteita++;
-        }
-
-        while ((indeksi < mahdolliset.length) && (pisteita < 29)) {
-            x = lauta.transformToXCoordinate(mahdolliset[(indeksi + offset) % mahdolliset.length]);
-            y = lauta.transformToYCoordinate(mahdolliset[(indeksi + offset) % mahdolliset.length]);
-            if (mahdollisetPisteet[mahdolliset[(indeksi + offset) % mahdolliset.length]]) {
-                lapsiJono.add(new Node(lauta, x, y));
-                mahdollisetPisteet[mahdolliset[(indeksi + offset) % mahdolliset.length]] = false; //Varmistetaan että samaa siirtoa ei lasketa moneen kertaan
-                pisteita++;
-                indeksi = 0;
-                offset = r.nextInt(mahdolliset.length);
-                continue;
+                if (PlacementHandler.onkoLaillinenSiirto(lauta, uusiX, uusiY)) {
+                    lapsiJono.add(new Node(lauta, uusiX, uusiY));
+                    pisteita++;
+                    indeksi = 0;
+                    offset = r.nextInt(mahdollisetPisteet.length);
+                    continue;
+                }
             }
             indeksi++;
 
@@ -388,12 +314,12 @@ public class Node {
         this.children = new NodenLapset(pisteet);
     }
 
-    private boolean lisaaJonoon(int simple, Pino<Node> lapsiJono, boolean[] mahdollisetPisteet) {
+    /*private boolean lisaaJonoon(int simple, Pino<Node> lapsiJono, boolean[] mahdollisetPisteet) {
         int x;
         int y;
         if (simple != -1) {
-            x = lauta.transformToXCoordinate(simple);
-            y = lauta.transformToYCoordinate(simple);
+            x = Pelilauta.toX(simple);
+            y = Pelilauta.toY(simple);
             if (mahdollisetPisteet[simple]) {
                 lapsiJono.add(new Node(lauta, x, y));
                 mahdollisetPisteet[simple] = false;
@@ -401,8 +327,7 @@ public class Node {
             }
         }
         return false;
-    }
-
+    }*/
     protected boolean isLeaf() {
         if (children == null) {
             return true;
@@ -440,30 +365,32 @@ public class Node {
      *
      * @return +1 jos musta voittaa, -1 jos valkea voittaa.
      */
-    public int simulate() {
-        Pelilauta simulateBoard = lauta.kopioi();
+    public int simulate(Pelilauta lauta, int[] amafTaulu) {
         int[] vapaatpisteet;
         int offset;
         int x, y;
 
         boolean noSensibleMovesLeft = false;
-        boolean loytyiSiirto = false;
+        boolean loytyiSiirto;
 
-        while (!noSensibleMovesLeft && simulateBoard.getMoveNumber() < 700) {
-            vapaatpisteet = simulateBoard.getMahdollisetPisteet();
+        while (!noSensibleMovesLeft && lauta.getMoveNumber() < 700) {
+            vapaatpisteet = lauta.getMahdollisetPisteet();
 
             loytyiSiirto = false;
-            if (simulateBoard.isPassedOnLastMove()) {
+            if (lauta.isPassedOnLastMove()) {
                 noSensibleMovesLeft = true;
             }
             if (vapaatpisteet != null) {
 
                 offset = r.nextInt(vapaatpisteet.length);
                 for (int i = 0; i < vapaatpisteet.length; i++) {
-                    x = simulateBoard.transformToXCoordinate(vapaatpisteet[(i + offset) % vapaatpisteet.length]);
-                    y = simulateBoard.transformToYCoordinate(vapaatpisteet[(i + offset) % vapaatpisteet.length]);
-                    if (!PlacementHandler.tuhoaakoSiirtoOmanSilman(simulateBoard, x, y)) {
-                        PlacementHandler.pelaaSiirto(simulateBoard, x, y);
+                    x = Pelilauta.toX(vapaatpisteet[(i + offset) % vapaatpisteet.length]);
+                    y = Pelilauta.toY(vapaatpisteet[(i + offset) % vapaatpisteet.length]);
+                    if (!PlacementHandler.tuhoaakoSiirtoOmanSilman(lauta, x, y)) {
+                        if (amafTaulu[Pelilauta.toSimple(x, y)] == 0) {
+                            amafTaulu[Pelilauta.toSimple(x, y)] = lauta.getTurn();
+                        }
+                        PlacementHandler.pelaaSiirto(lauta, x, y);
                         noSensibleMovesLeft = false;
                         loytyiSiirto = true;
                         break;
@@ -472,7 +399,7 @@ public class Node {
                 }
             }
             if (!loytyiSiirto) {
-                PlacementHandler.pass(simulateBoard);
+                PlacementHandler.pass(lauta);
             }
         }
 
@@ -482,25 +409,25 @@ public class Node {
             Stone scoring + silmien lasku
          */
         int kivenvari;
-        for (int i = 0; i < simulateBoard.getKoko() * simulateBoard.getKoko(); i++) {
-            kivenvari = simulateBoard.getRisteys(simulateBoard.transformToXCoordinate(i), simulateBoard.transformToYCoordinate(i));
+        for (int i = 0; i < Pelilauta.getKoko() * Pelilauta.getKoko(); i++) {
+            kivenvari = lauta.getRisteys(Pelilauta.toX(i), Pelilauta.toY(i));
             if (kivenvari == Pelilauta.MUSTA) {
                 pisteet++;
             } else if (kivenvari == Pelilauta.VALKEA) {
                 pisteet--;
             } else { // Tyhjä risteys
-                x = simulateBoard.transformToXCoordinate(i);
-                y = simulateBoard.transformToYCoordinate(i);
+                x = Pelilauta.toX(i);
+                y = Pelilauta.toY(i);
                 //Tämä laskee sekin väärin mutta ero on yleisesti ottaen hyvin pieni.
-                if (simulateBoard.getRisteys(x + 1, y) == Pelilauta.MUSTA || simulateBoard.getRisteys(x - 1, y) == Pelilauta.MUSTA) {
+                if (lauta.getRisteys(x + 1, y) == Pelilauta.MUSTA || lauta.getRisteys(x - 1, y) == Pelilauta.MUSTA) {
                     pisteet++;
                 }
-                if (simulateBoard.getRisteys(x + 1, y) == Pelilauta.VALKEA || simulateBoard.getRisteys(x - 1, y) == Pelilauta.VALKEA) {
+                if (lauta.getRisteys(x + 1, y) == Pelilauta.VALKEA || lauta.getRisteys(x - 1, y) == Pelilauta.VALKEA) {
                     pisteet--;
                 }
             }
         }
-        //GoAI.piirraLauta(simulateBoard);
+        //GoAI.piirraLauta(lauta);
         //System.out.println(pisteet + ", ");
 
         if (pisteet > 0) {

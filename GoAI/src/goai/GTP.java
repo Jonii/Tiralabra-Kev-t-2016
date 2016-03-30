@@ -73,7 +73,7 @@ public class GTP {
             } else if (komento.startsWith("PROTOCOL_VERSION")) {
                 System.out.println("= 2");
             } else if (komento.startsWith("VERSION")) {
-                System.out.println("= 1.3.1");
+                System.out.println("= 1.4.0");
             } else if (komento.startsWith("QUIT")) {
                 return;
             } else if (komento.startsWith("BOARDSIZE")) {
@@ -160,8 +160,8 @@ public class GTP {
 
                     offset = r.nextInt(vapaatpisteet.length);
                     for (int i = 0; i < vapaatpisteet.length; i++) {
-                        x = simulateBoard.transformToXCoordinate(vapaatpisteet[(i + offset) % vapaatpisteet.length]);
-                        y = simulateBoard.transformToYCoordinate(vapaatpisteet[(i + offset) % vapaatpisteet.length]);
+                        x = simulateBoard.toX(vapaatpisteet[(i + offset) % vapaatpisteet.length]);
+                        y = simulateBoard.toY(vapaatpisteet[(i + offset) % vapaatpisteet.length]);
                         if (!PlacementHandler.tuhoaakoSiirtoOmanSilman(simulateBoard, x, y)) {
                             PlacementHandler.pelaaSiirto(simulateBoard, x, y);
                             noSensibleMovesLeft = false;
@@ -294,39 +294,47 @@ public class GTP {
                 lauta.changeTurn();
             }
         }
-        Node root = new Node(lauta);
+        Node root = new Node();
+        root.setTurn(lauta.getTurn());
+        
         long now = System.currentTimeMillis();
-        int miettimisAika = 6000;
-        while (System.currentTimeMillis() < now + miettimisAika) {
-            root.selectAction();
+        int miettimisAika = 3000;
+        //while (System.currentTimeMillis() < now + miettimisAika) {
+        while (simulaatioita < 3000) {
+            root.selectAction(lauta);
             simulaatioita++;
         }
         Node uusiNode = root.annaValinta();
-        logger.info("Suoritettiin " + simulaatioita + " simulaatiota ajassa " + miettimisAika / 1000 + "s.");
+        logger.info("Suoritettiin " + simulaatioita + " simulaatiota ajassa " + (1.0 * (System.currentTimeMillis() - now) / 1000) + "s.");
 
         if (uusiNode == null) {
             throw new IllegalStateException("Tyhjä siirto valittu");
-        } //luovutus jos voittotodennäköisyys alle 20%
+        }
+        //luovutus jos voittotodennäköisyys alle 20%
 
         if (Node.voitonTodennakoisyys(root) < 0.2) {
             System.out.println("= resign");
-        } else if (uusiNode.getX() == -1 && uusiNode.getY() == -1) {
+        } 
+        else if (uusiNode.getX() == -1 && uusiNode.getY() == -1) {
             System.out.println("= pass");
             PlacementHandler.pass(lauta);
-        } else {
+        } 
+        else {
             int voitot = 0;
-            for (int i = 0; i < 200; i++) {
-                if (root.simulate() == 1) {
+            /*for (int i = 0; i < 200; i++) {
+                if (root.simulate(lauta, new int[Pelilauta.getKoko() * Pelilauta.getKoko()]) == 1) {
                     voitot++;
                 }
             }
-            if (voitot < 3 || voitot > 197) {
+            if ((voitot < 2) || (voitot > 198)) {
                 System.out.println("= pass");
                 PlacementHandler.pass(lauta);
-            } else {
+            }*/ 
+            
+            //else {
                 System.out.println("= " + produceCoord(uusiNode.getX(), uusiNode.getY()));
                 PlacementHandler.pelaaSiirto(lauta, uusiNode.getX(), uusiNode.getY());
-            }
+            //}
         }
         logger.info("Voiton todennäköisyys: " + Node.voitonTodennakoisyys(root) + ".\nValittu node: " + uusiNode.voitot + "/" + uusiNode.vierailut + ".");
     }

@@ -134,12 +134,14 @@ public class GoAI {
      * diagnostiikkataulua jonka avulla voi kartoittaa 
      */
     private static void pelaaSiirtoKoneelle() {
-        Node root = new Node(lauta);
+        Node root = new Node();
+        root.setTurn(lauta.getTurn());
+        
         long now = System.currentTimeMillis();
-        int miettimisAika = 400;
+        int miettimisAika = 500;
         int n = 1;
         while (System.currentTimeMillis() < now + miettimisAika) {
-            root.selectAction();
+            root.selectAction(lauta);
             simulaatioita++;
             if (System.currentTimeMillis() > now + (n * miettimisAika)/10) {
                 System.out.print(".");

@@ -42,29 +42,29 @@ public class PelilautaTest {
     public void testaaToimiikoKoordinaattimuunnokset() {
          int x = 7;
          int y = 10;
-         assertEquals(7, lauta.transformToXCoordinate(lauta.transformToSimpleCoordinates(x, y)));
-         assertEquals(10, lauta.transformToYCoordinate(lauta.transformToSimpleCoordinates(x, y)));
+         assertEquals(7, lauta.toX(lauta.toSimple(x, y)));
+         assertEquals(10, lauta.toY(lauta.toSimple(x, y)));
          
          int simple = 120;
-         x = lauta.transformToXCoordinate(simple);
-         y = lauta.transformToYCoordinate(simple);
-         assertEquals(120, lauta.transformToSimpleCoordinates(x, y));
+         x = lauta.toX(simple);
+         y = lauta.toY(simple);
+         assertEquals(120, lauta.toSimple(x, y));
     }
     
     @Test
     public void testaaSiirtymat() {
-        assertEquals(-1, lauta.moveLeft(lauta.transformToSimpleCoordinates(0, 5)));
-        assertEquals(-1, lauta.moveRight(lauta.transformToSimpleCoordinates(18, 12)));
-        assertEquals(-1, lauta.moveUp(lauta.transformToSimpleCoordinates(4, 18)));
-        assertEquals(-1, lauta.moveDown(lauta.transformToSimpleCoordinates(6, 0)));
-        assertEquals(lauta.transformToSimpleCoordinates(5, 3), lauta.moveLeft(lauta.transformToSimpleCoordinates(6, 3)));
-        assertEquals(lauta.transformToSimpleCoordinates(7, 3), lauta.moveRight(lauta.transformToSimpleCoordinates(6, 3)));
-        assertEquals(lauta.transformToSimpleCoordinates(6, 2), lauta.moveDown(lauta.transformToSimpleCoordinates(6, 3)));
-        assertEquals(lauta.transformToSimpleCoordinates(6, 4), lauta.moveUp(lauta.transformToSimpleCoordinates(6, 3)));
-        assertNotEquals(-1, lauta.moveRight(lauta.transformToSimpleCoordinates(0, 0)));
-        assertNotEquals(-1, lauta.moveUp(lauta.transformToSimpleCoordinates(0, 0)));
-        assertEquals(-1, lauta.moveDown(lauta.transformToSimpleCoordinates(0, 0)));
-        assertEquals(-1, lauta.moveLeft(lauta.transformToSimpleCoordinates(0, 0)));
+        assertEquals(-1, lauta.moveLeft(lauta.toSimple(0, 5)));
+        assertEquals(-1, lauta.moveRight(lauta.toSimple(18, 12)));
+        assertEquals(-1, lauta.moveUp(lauta.toSimple(4, 18)));
+        assertEquals(-1, lauta.moveDown(lauta.toSimple(6, 0)));
+        assertEquals(lauta.toSimple(5, 3), lauta.moveLeft(lauta.toSimple(6, 3)));
+        assertEquals(lauta.toSimple(7, 3), lauta.moveRight(lauta.toSimple(6, 3)));
+        assertEquals(lauta.toSimple(6, 2), lauta.moveDown(lauta.toSimple(6, 3)));
+        assertEquals(lauta.toSimple(6, 4), lauta.moveUp(lauta.toSimple(6, 3)));
+        assertNotEquals(-1, lauta.moveRight(lauta.toSimple(0, 0)));
+        assertNotEquals(-1, lauta.moveUp(lauta.toSimple(0, 0)));
+        assertEquals(-1, lauta.moveDown(lauta.toSimple(0, 0)));
+        assertEquals(-1, lauta.moveLeft(lauta.toSimple(0, 0)));
     }
 
 }
