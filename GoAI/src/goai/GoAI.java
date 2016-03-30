@@ -23,6 +23,8 @@ public class GoAI {
     static int[][] apulautaVoitot;
     static int passauksia;
     static int resign = 0;
+    public static int simulaatioCount = 5000;
+    private static boolean gtp = false;
 
     /**
      * @param args kvk = kone vastaan kone matsi, gtp = Go Text Protocol interfacen käyttö tavallisen käyttöliittymän sijaan.
@@ -32,14 +34,47 @@ public class GoAI {
         int x;
         int y;
         String komento;
-
-        if ((args.length > 0) && (args[0].compareToIgnoreCase("gtp") == 0)) {
-            lauta = new Pelilauta(7);
-            GTP.read();
-        } else {
-            if ((args.length > 0) && (args[0].compareToIgnoreCase("kvk") == 0)) {
+        
+        int i = 0;
+        while (i < args.length) {
+            
+            /**
+             * GTP vai ei GTP:tä.
+             */
+            if (args[i].compareToIgnoreCase("-gtp") == 0) {
+                gtp = true;
+            }
+            /**
+             * Simulaatioiden määrä per siirto.
+             */
+            else if (args[i].compareToIgnoreCase("-simulations") == 0) {
+                i++;
+                simulaatioCount = Integer.parseInt(args[i]);
+            }
+            /**
+             * Kuinka paljolti haaraudutaan per siirto.
+             */
+            else if (args[i].compareToIgnoreCase("-branches") == 0) {
+                i++;
+                Node.branchingFactor = Integer.parseInt(args[i]);
+            }
+            /**
+             * Kuinka paljon painotetaan RAVEn tuotoksia. Jos -rave 1000,
+             * tällöin RAVEn käyttö lopetetaan Noden kohdalla jossa on vierailtu 1000 kertaa.
+             */
+            else if (args[i].compareToIgnoreCase("-rave") == 0) {
+                i++;
+                Node.raveSuoritukset = Integer.parseInt(args[i]);
+            }
+            else if (args[i].compareToIgnoreCase("-kvk") == 0) {
                 koneVastaanKone = true;
             }
+            i++;
+        }
+        if (gtp) {
+            GTP.read();
+        } else {
+            
             Scanner reader = new Scanner(System.in);
             /*System.out.print("Anna laudan koko: ");
             

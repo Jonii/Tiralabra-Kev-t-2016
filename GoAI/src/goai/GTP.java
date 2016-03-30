@@ -300,7 +300,7 @@ public class GTP {
         long now = System.currentTimeMillis();
         int miettimisAika = 3000;
         //while (System.currentTimeMillis() < now + miettimisAika) {
-        while (simulaatioita < 3000) {
+        while (simulaatioita < GoAI.simulaatioCount) {
             root.selectAction(lauta);
             simulaatioita++;
         }
