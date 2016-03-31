@@ -19,6 +19,7 @@ import static org.junit.Assert.*;
 public class NodeTest {
     
     Node node;
+    Pelilauta lauta;
     
     public NodeTest() {
     }
@@ -34,7 +35,7 @@ public class NodeTest {
     @Before
     public void setUp() {
         node = new Node();
-        node.lauta = new Pelilauta();
+        lauta = new Pelilauta();
         
     }
     

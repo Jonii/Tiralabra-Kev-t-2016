@@ -38,7 +38,7 @@ public class GTP {
 
         logger = Logger.getLogger("MyLog");
         logger.setUseParentHandlers(false);
-
+        double score;
         FileHandler fh;
 
         try {
@@ -73,7 +73,7 @@ public class GTP {
             } else if (komento.startsWith("PROTOCOL_VERSION")) {
                 System.out.println("= 2");
             } else if (komento.startsWith("VERSION")) {
-                System.out.println("= 1.4.0");
+                System.out.println("= 1.5.0");
             } else if (komento.startsWith("QUIT")) {
                 return;
             } else if (komento.startsWith("BOARDSIZE")) {
@@ -86,6 +86,15 @@ public class GTP {
             } else if (komento.startsWith("KOMI")) {
                 lauta.setKomi(Double.parseDouble(komento.substring(5)));
                 System.out.println("= ");
+            } else if (komento.startsWith("FINAL_STATUS_LIST")) {
+                final_status_list();
+            } else if (komento.startsWith("FINAL_SCORE")) {
+                score = score();
+                if (score < 0) {
+                    System.out.println("= W+" + (-1 * score));
+                } else {
+                    System.out.println("= B+" + score());
+                }
             } else if (komento.startsWith("LIST_COMMANDS")) {
                 System.out.println("= protocol_version\n"
                         + "name\n"
@@ -97,7 +106,9 @@ public class GTP {
                         + "clear_board\n"
                         + "komi\n"
                         + "play\n"
-                        + "genmove");
+                        + "genmove"
+                        + "final_score"
+                        + "final_status_list");
             } else if (komento.startsWith("KNOWN_COMMAND")) {
                 if (komento.startsWith("KNOWN_COMMAND PLAY")) {
                     System.out.println("= known");
@@ -121,6 +132,10 @@ public class GTP {
                     System.out.println("= known");
                 } else if (komento.startsWith("KNOWN_COMMAND KNOWN_COMMAND")) {
                     System.out.println("= known");
+                } else if (komento.startsWith("KNOWN_COMMAND FINAL_SCORE")) {
+                    System.out.println("= known");
+                } else if (komento.startsWith("KNOWN_COMMAND FINAL_STATUS_LIST")) {
+                    System.out.println("= known");
                 } else {
                     System.out.println("= false");
                 }
@@ -133,54 +148,26 @@ public class GTP {
     }
 
     /**
-     * Hyi hyi kopioitu melkein suoraan Nodesta. Simuloi pelin, jos kivi ei
-     * kuole lopussa millään, se on elossa. TODO
+     * Anna kuolleet kivet.
      *
      */
     public static void final_status_list() {
         if (komento.startsWith("FINAL_STATUS_LIST DEAD")) {
-            boolean[] taulu = new boolean[lauta.getKoko() * lauta.getKoko()];
-            Random r = new Random();
-            Pelilauta simulateBoard = lauta.kopioi();
-            int[] vapaatpisteet;
-            int offset;
-            int x, y;
-
-            boolean noSensibleMovesLeft = false;
-            boolean loytyiSiirto = false;
-
-            while (!noSensibleMovesLeft && simulateBoard.getMoveNumber() < 700) {
-                vapaatpisteet = simulateBoard.getMahdollisetPisteet();
-
-                loytyiSiirto = false;
-                if (simulateBoard.isPassedOnLastMove()) {
-                    noSensibleMovesLeft = true;
-                }
-                if (vapaatpisteet != null) {
-
-                    offset = r.nextInt(vapaatpisteet.length);
-                    for (int i = 0; i < vapaatpisteet.length; i++) {
-                        x = simulateBoard.toX(vapaatpisteet[(i + offset) % vapaatpisteet.length]);
-                        y = simulateBoard.toY(vapaatpisteet[(i + offset) % vapaatpisteet.length]);
-                        if (!PlacementHandler.tuhoaakoSiirtoOmanSilman(simulateBoard, x, y)) {
-                            PlacementHandler.pelaaSiirto(simulateBoard, x, y);
-                            noSensibleMovesLeft = false;
-                            loytyiSiirto = true;
-                            break;
-                        }
-
-                    }
-                }
-                if (!loytyiSiirto) {
-                    PlacementHandler.pass(simulateBoard);
+            System.out.print("= ");
+            boolean[] kuolleet = GoAI.decideDead(lauta);
+            for (int i = 0; i < Pelilauta.getKoko() * Pelilauta.getKoko(); i++) {
+                if (kuolleet[i]) {
+                    System.out.println(produceCoord(Pelilauta.toX(i), Pelilauta.toY(i)));
                 }
             }
-            
-        } 
-        
-        else {
+            System.out.println();
+        } else {
             System.out.println("? ");
         }
+    }
+
+    public static double score() {
+        return GoAI.laskePisteet(GoAI.decideDead(lauta), lauta);
     }
 
     /**
@@ -296,7 +283,7 @@ public class GTP {
         }
         Node root = new Node();
         root.setTurn(lauta.getTurn());
-        
+
         long now = System.currentTimeMillis();
         int miettimisAika = 3000;
         //while (System.currentTimeMillis() < now + miettimisAika) {
@@ -314,28 +301,34 @@ public class GTP {
 
         if (Node.voitonTodennakoisyys(root) < 0.2) {
             System.out.println("= resign");
-        } 
-        else if (uusiNode.getX() == -1 && uusiNode.getY() == -1) {
+        } else if (uusiNode.getX() == -1 && uusiNode.getY() == -1) {
             System.out.println("= pass");
             PlacementHandler.pass(lauta);
-        } 
-        else {
-            int voitot = 0;
-            /*for (int i = 0; i < 200; i++) {
-                if (root.simulate(lauta, new int[Pelilauta.getKoko() * Pelilauta.getKoko()]) == 1) {
-                    voitot++;
-                }
-            }
-            if ((voitot < 2) || (voitot > 198)) {
+        } else {
+            if (decidePass(lauta, root)) {
                 System.out.println("= pass");
                 PlacementHandler.pass(lauta);
-            }*/ 
-            
+            }
+
             //else {
-                System.out.println("= " + produceCoord(uusiNode.getX(), uusiNode.getY()));
-                PlacementHandler.pelaaSiirto(lauta, uusiNode.getX(), uusiNode.getY());
+            System.out.println("= " + produceCoord(uusiNode.getX(), uusiNode.getY()));
+            PlacementHandler.pelaaSiirto(lauta, uusiNode.getX(), uusiNode.getY());
             //}
         }
         logger.info("Voiton todennäköisyys: " + Node.voitonTodennakoisyys(root) + ".\nValittu node: " + uusiNode.voitot + "/" + uusiNode.vierailut + ".");
+    }
+
+    public static boolean decidePass(Pelilauta lauta, Node node) {
+        Pelilauta simuLauta;
+        int[] amafTaulu = new int[Pelilauta.getKoko() * Pelilauta.getKoko()];
+        int voitot = 0;
+        double score = score();
+        if ((score > 0 && lauta.getTurn() == Pelilauta.VALKEA) || (score < 0 && lauta.getTurn() == Pelilauta.MUSTA)) {
+            return false;
+        }
+        if (Node.voitonTodennakoisyys(node) > 0.95) { 
+            return true;
+        }
+        return false;
     }
 }

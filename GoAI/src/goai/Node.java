@@ -111,7 +111,7 @@ public class Node {
         int tulos;
 
         while (!currentNode.isLeaf()) {
-            if (vierailut >= 5 * raveSuoritukset) {
+            if (raveSuoritukset == 0) {
                 currentNode = currentNode.select();
                 PlacementHandler.pelaaSiirto(currentLauta, currentNode.getX(), currentNode.getY());
             } else {
@@ -125,7 +125,7 @@ public class Node {
         }
         currentNode.expand(currentLauta);
 
-        if (vierailut >= 5 * raveSuoritukset) {
+        if (raveSuoritukset == 0) {
             currentNode = currentNode.select();
             PlacementHandler.pelaaSiirto(currentLauta, currentNode.getX(), currentNode.getY());
         } else {
@@ -138,9 +138,10 @@ public class Node {
         
         visited.add(currentNode);
 
-        tulos = currentNode.simulate(currentLauta, amafTaulu);
+        currentLauta = currentNode.simulate(currentLauta, amafTaulu);
+        tulos = simulScore(currentLauta);
 
-        if (vierailut >= 5 * raveSuoritukset) {
+        if (raveSuoritukset == 0) {
             update(visited, tulos);
         } else {
             updateRAVE(visited, tulos, amafTaulu);
@@ -361,11 +362,12 @@ public class Node {
     }
 
     /**
-     * simuloi pelin. Pelaa sarjan
+     * simuloi pelin. Pelaa sarjan siirtoja.
      *
-     * @return +1 jos musta voittaa, -1 jos valkea voittaa.
+     * @return Pelilauta, kun simulaatio on päättynyt. Laudalla ei pitäisi olla
+     * yhtäkään kuollutta ryhmää, ja silmien tulisi olla yhden pisteen kokoisia.
      */
-    public int simulate(Pelilauta lauta, int[] amafTaulu) {
+    public static Pelilauta simulate(Pelilauta lauta, int[] amafTaulu) {
         int[] vapaatpisteet;
         int offset;
         int x, y;
@@ -403,11 +405,16 @@ public class Node {
             }
         }
 
-        double pisteet = -1 * lauta.getKomi(); // Alkuarvo on komi, valkealle annettava etu.
+        return lauta;
+    }
 
+    public static int simulScore(Pelilauta lauta) {
+        int x;
+        int y;
+        double pisteet = -1 * lauta.getKomi(); // Alkuarvo on komi, valkealle annettava etu.
         /*
-            Stone scoring + silmien lasku
-         */
+        Stone scoring + silmien lasku
+        */
         int kivenvari;
         for (int i = 0; i < Pelilauta.getKoko() * Pelilauta.getKoko(); i++) {
             kivenvari = lauta.getRisteys(Pelilauta.toX(i), Pelilauta.toY(i));
@@ -418,18 +425,23 @@ public class Node {
             } else { // Tyhjä risteys
                 x = Pelilauta.toX(i);
                 y = Pelilauta.toY(i);
-                //Tämä laskee sekin väärin mutta ero on yleisesti ottaen hyvin pieni.
-                if (lauta.getRisteys(x + 1, y) == Pelilauta.MUSTA || lauta.getRisteys(x - 1, y) == Pelilauta.MUSTA) {
+                
+                if (lauta.getRisteys(x + 1, y) == Pelilauta.MUSTA
+                        || lauta.getRisteys(x - 1, y) == Pelilauta.MUSTA
+                        || lauta.getRisteys(x, y-1) == Pelilauta.MUSTA
+                        || lauta.getRisteys(x, y+1) == Pelilauta.MUSTA) {
                     pisteet++;
                 }
-                if (lauta.getRisteys(x + 1, y) == Pelilauta.VALKEA || lauta.getRisteys(x - 1, y) == Pelilauta.VALKEA) {
+                if (lauta.getRisteys(x + 1, y) == Pelilauta.VALKEA
+                        || lauta.getRisteys(x - 1, y) == Pelilauta.VALKEA
+                        || lauta.getRisteys(x, y-1) == Pelilauta.VALKEA
+                        || lauta.getRisteys(x, y+1) == Pelilauta.VALKEA) {
                     pisteet--;
                 }
             }
         }
         //GoAI.piirraLauta(lauta);
         //System.out.println(pisteet + ", ");
-
         if (pisteet > 0) {
             return 1;
         }
