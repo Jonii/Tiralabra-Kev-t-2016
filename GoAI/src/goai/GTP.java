@@ -73,7 +73,7 @@ public class GTP {
             } else if (komento.startsWith("PROTOCOL_VERSION")) {
                 System.out.println("= 2");
             } else if (komento.startsWith("VERSION")) {
-                System.out.println("= 1.5.0");
+                System.out.println("= 1.5.1");
             } else if (komento.startsWith("QUIT")) {
                 return;
             } else if (komento.startsWith("BOARDSIZE")) {
@@ -106,8 +106,8 @@ public class GTP {
                         + "clear_board\n"
                         + "komi\n"
                         + "play\n"
-                        + "genmove"
-                        + "final_score"
+                        + "genmove\n"
+                        + "final_score\n"
                         + "final_status_list");
             } else if (komento.startsWith("KNOWN_COMMAND")) {
                 if (komento.startsWith("KNOWN_COMMAND PLAY")) {
