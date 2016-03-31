@@ -71,7 +71,7 @@ public class Pelilauta {
     /**
      * Valkealle annettava tasoitus
      */
-    private double komi;
+    private static double komi = 0.5;
     
     public Pelilauta() {
         this(19);
@@ -81,12 +81,10 @@ public class Pelilauta {
         Pelilauta.koko = koko;
         Node.laudanKoko = koko;
         
-        this.komi = 0.5;
         this.edellinen = -1;
         this.sitaEdellinen = -1;
         this.ko = -1;
         
-        if (koko > 12) this.komi = 7.5;
         lautaTaulu = new Alkio[koko][koko];
         for (int i = 0; i<koko; i++) {
             for (int j = 0; j < koko; j++) {
@@ -129,12 +127,12 @@ public class Pelilauta {
         this.moveNumber = moveNumber;
     }
 
-    public double getKomi() {
+    public static double getKomi() {
         return komi;
     }
 
-    public void setKomi(double komi) {
-        this.komi = komi;
+    public static void setKomi(double komi) {
+        Pelilauta.komi = komi;
     }
 
     public boolean isPassedOnLastMove() {
@@ -244,7 +242,7 @@ public class Pelilauta {
         }
         if (getTurn() != Pelilauta.MUSTA) palautus.changeTurn();
         palautus.setMoveNumber(getMoveNumber());
-        palautus.setKomi(getKomi());
+        
         palautus.setEdellinen(edellinen);
         palautus.setSitaEdellinen(sitaEdellinen);
         palautus.setKo(ko);

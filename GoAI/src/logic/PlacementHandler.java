@@ -140,6 +140,7 @@ public class PlacementHandler {
             pass(lauta);
             return;
         }
+        CriticalPointObserver.nollaaKaikki();
         lauta.setKo(-1);
         lauta.setSitaEdellinen(lauta.getEdellinen());
         lauta.setEdellinen(lauta.toSimple(x, y));
@@ -205,7 +206,9 @@ public class PlacementHandler {
         Pino<Integer> kiviKetju = new Pino<>();
 
         boolean[] visited = new boolean[koko * koko];
-
+        
+        int atariPolicy = -1;
+        
         int pelaaja = lauta.getRisteys(x, y);
         int vapaudet = 0;
 
@@ -251,10 +254,15 @@ public class PlacementHandler {
 
             if (lauta.getRisteys(currentX, currentY) == Pelilauta.TYHJA) {
                 vapaudet++;
+                atariPolicy = current;
             }
 
         }
-
+        if (vapaudet == 1) {
+            if (lauta.getTurn() == pelaaja) {
+                CriticalPointObserver.addSelfAtariMove(atariPolicy);
+            }
+        }
         while (kiviKetju.IsNotEmpty()) {
             current = kiviKetju.pop();
             lauta.setVapaus(lauta.toX(current), lauta.toY(current), vapaudet);

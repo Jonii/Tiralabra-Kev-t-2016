@@ -88,7 +88,7 @@ public class GoAI {
                 6.5 komi, 9x9 laudankoko. Diagnostiikkataulu pois näkyvistä.
              */
             lauta = new Pelilauta(9);
-            lauta.setKomi(6.5);
+            Pelilauta.setKomi(6.5);
             if (true) {
                 apulautaVierailut = new int[lauta.getKoko()][lauta.getKoko()];
                 apulautaVoitot = new int[lauta.getKoko()][lauta.getKoko()];
@@ -255,7 +255,7 @@ public class GoAI {
         }
         boolean[] palautus = new boolean[Pelilauta.getKoko() * Pelilauta.getKoko()];
         for (int i = 0; i < Pelilauta.getKoko() * Pelilauta.getKoko(); i++) {
-            if (collisionTaulu[i] > 99) {
+            if (collisionTaulu[i] == 100) {
                 palautus[i] = true;
             }
         }
@@ -271,21 +271,20 @@ public class GoAI {
         boolean[] visited = new boolean[koko * koko];
         boolean[] visitedBackup = new boolean[koko * koko];
         boolean noPoints = false;
-
         int uusiSimple;
 
         int currentX, currentY;
 
         int current = lauta.toSimple(0, 0);
         pino.add(current);
-
-        double pisteet = -1 * lauta.getKomi();
+        
+        
+        double pisteet = 0; 
+        pisteet = lauta.getKomi() * (-1);
         int pisteetTyhjaltaAlueelta = 0;
 
         while (pino.IsNotEmpty()) {
-            for (int i = 0; i < koko * koko; i++) {
-                visitedBackup[i] = visited[i];
-            }
+
             current = pino.pop();
 
             currentX = Pelilauta.toX(current);
@@ -294,13 +293,19 @@ public class GoAI {
             if (visited[current]) {
                 continue;
             }
+            
             visited[current] = true;
 
             if (lauta.getRisteys(currentX, currentY) == Pelilauta.TYHJA || kuolleet[current]) {
-
+                visited[current] = false; //Tämä jotta tyhjien risteyksien läpikäynti ei keskeydy heti alkuunsa.
+                
+                for (int i = 0; i < koko * koko; i++) {
+                    visitedBackup[i] = visited[i];
+                }
                 pelaaja = Pelilauta.TYHJA;
                 noPoints = false;
                 pisteetTyhjaltaAlueelta = 0;
+                
 
                 emptyPino.add(current);
 
@@ -310,10 +315,8 @@ public class GoAI {
                     if (visited[current]) {
                         continue;
                     }
-
-                    if (pelaaja != Pelilauta.TYHJA) {
-                        pisteetTyhjaltaAlueelta++;
-                    }
+                    
+                    visited[current] = true;
 
                     uusiSimple = Pelilauta.moveLeft(current);
                     if (uusiSimple != -1) {
@@ -371,6 +374,10 @@ public class GoAI {
                             }
                         }
                     }
+                    if (pelaaja != Pelilauta.TYHJA) {
+                        pisteetTyhjaltaAlueelta++;
+                    }
+                    visited[current] = true;
                 }
                 if (!noPoints) {
                     if (pelaaja == Pelilauta.MUSTA) {
@@ -381,10 +388,26 @@ public class GoAI {
                 }
             } else if (lauta.getRisteys(currentX, currentY) == Pelilauta.MUSTA) {
                 pisteet++;
+
             } else {
                 pisteet--;
+            } 
+            uusiSimple = Pelilauta.moveDown(current);
+            if (uusiSimple != -1) {
+                pino.add(uusiSimple);
             }
-
+            uusiSimple = Pelilauta.moveRight(current);
+            if (uusiSimple != -1) {
+                pino.add(uusiSimple);
+            }
+            uusiSimple = Pelilauta.moveUp(current);
+            if (uusiSimple != -1) {
+                pino.add(uusiSimple);
+            }
+            uusiSimple = Pelilauta.moveLeft(current);
+            if (uusiSimple != -1) {
+                pino.add(uusiSimple);
+            }
         }
         return pisteet;
     }

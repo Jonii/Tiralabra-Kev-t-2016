@@ -84,7 +84,7 @@ public class GTP {
                 lauta = new Pelilauta(koko);
                 System.out.println("= ");
             } else if (komento.startsWith("KOMI")) {
-                lauta.setKomi(Double.parseDouble(komento.substring(5)));
+                Pelilauta.setKomi(Double.parseDouble(komento.substring(5)));
                 System.out.println("= ");
             } else if (komento.startsWith("FINAL_STATUS_LIST")) {
                 final_status_list();
@@ -93,7 +93,7 @@ public class GTP {
                 if (score < 0) {
                     System.out.println("= W+" + (-1 * score));
                 } else {
-                    System.out.println("= B+" + score());
+                    System.out.println("= B+" + score);
                 }
             } else if (komento.startsWith("LIST_COMMANDS")) {
                 System.out.println("= protocol_version\n"
@@ -310,10 +310,10 @@ public class GTP {
                 PlacementHandler.pass(lauta);
             }
 
-            //else {
-            System.out.println("= " + produceCoord(uusiNode.getX(), uusiNode.getY()));
-            PlacementHandler.pelaaSiirto(lauta, uusiNode.getX(), uusiNode.getY());
-            //}
+            else {
+                System.out.println("= " + produceCoord(uusiNode.getX(), uusiNode.getY()));
+                PlacementHandler.pelaaSiirto(lauta, uusiNode.getX(), uusiNode.getY());
+            }
         }
         logger.info("Voiton todennäköisyys: " + Node.voitonTodennakoisyys(root) + ".\nValittu node: " + uusiNode.voitot + "/" + uusiNode.vierailut + ".");
     }
@@ -326,7 +326,7 @@ public class GTP {
         if ((score > 0 && lauta.getTurn() == Pelilauta.VALKEA) || (score < 0 && lauta.getTurn() == Pelilauta.MUSTA)) {
             return false;
         }
-        if (Node.voitonTodennakoisyys(node) > 0.95) { 
+        if (Node.voitonTodennakoisyys(node) > 0.95) {
             return true;
         }
         return false;

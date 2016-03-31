@@ -3,6 +3,7 @@ package goai;
 import java.util.LinkedList;
 import java.util.Random;
 import java.util.TreeSet;
+import logic.CriticalPointObserver;
 import logic.Pino;
 import logic.PlacementHandler;
 
@@ -135,7 +136,7 @@ public class Node {
             }
             PlacementHandler.pelaaSiirto(currentLauta, currentNode.getX(), currentNode.getY());
         }
-        
+
         visited.add(currentNode);
 
         currentLauta = currentNode.simulate(currentLauta, amafTaulu);
@@ -383,8 +384,23 @@ public class Node {
                 noSensibleMovesLeft = true;
             }
             if (vapaatpisteet != null) {
+                if (CriticalPointObserver.getSelfAtariMove() != -1) {
+                    x = Pelilauta.toX(CriticalPointObserver.getSelfAtariMove());
+                    y = Pelilauta.toY(CriticalPointObserver.getSelfAtariMove());
+                    
+                    if (!PlacementHandler.tuhoaakoSiirtoOmanSilman(lauta, x, y)) {
+                        if (amafTaulu[Pelilauta.toSimple(x, y)] == 0) {
+                            amafTaulu[Pelilauta.toSimple(x, y)] = lauta.getTurn();
+                        }
+                        PlacementHandler.pelaaSiirto(lauta, x, y);
+                        noSensibleMovesLeft = false;
+                        loytyiSiirto = true;
+                        continue;
+                    }
+                }
 
                 offset = r.nextInt(vapaatpisteet.length);
+
                 for (int i = 0; i < vapaatpisteet.length; i++) {
                     x = Pelilauta.toX(vapaatpisteet[(i + offset) % vapaatpisteet.length]);
                     y = Pelilauta.toY(vapaatpisteet[(i + offset) % vapaatpisteet.length]);
@@ -414,7 +430,7 @@ public class Node {
         double pisteet = -1 * lauta.getKomi(); // Alkuarvo on komi, valkealle annettava etu.
         /*
         Stone scoring + silmien lasku
-        */
+         */
         int kivenvari;
         for (int i = 0; i < Pelilauta.getKoko() * Pelilauta.getKoko(); i++) {
             kivenvari = lauta.getRisteys(Pelilauta.toX(i), Pelilauta.toY(i));
@@ -425,17 +441,17 @@ public class Node {
             } else { // Tyhjä risteys
                 x = Pelilauta.toX(i);
                 y = Pelilauta.toY(i);
-                
+
                 if (lauta.getRisteys(x + 1, y) == Pelilauta.MUSTA
                         || lauta.getRisteys(x - 1, y) == Pelilauta.MUSTA
-                        || lauta.getRisteys(x, y-1) == Pelilauta.MUSTA
-                        || lauta.getRisteys(x, y+1) == Pelilauta.MUSTA) {
+                        || lauta.getRisteys(x, y - 1) == Pelilauta.MUSTA
+                        || lauta.getRisteys(x, y + 1) == Pelilauta.MUSTA) {
                     pisteet++;
                 }
                 if (lauta.getRisteys(x + 1, y) == Pelilauta.VALKEA
                         || lauta.getRisteys(x - 1, y) == Pelilauta.VALKEA
-                        || lauta.getRisteys(x, y-1) == Pelilauta.VALKEA
-                        || lauta.getRisteys(x, y+1) == Pelilauta.VALKEA) {
+                        || lauta.getRisteys(x, y - 1) == Pelilauta.VALKEA
+                        || lauta.getRisteys(x, y + 1) == Pelilauta.VALKEA) {
                     pisteet--;
                 }
             }
