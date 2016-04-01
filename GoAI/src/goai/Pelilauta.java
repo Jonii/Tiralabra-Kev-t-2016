@@ -148,9 +148,16 @@ public class Pelilauta {
      * 
      * @param x koordinaatti 9 - koko-1
      * @param y koordinaattii 0 - koko-1
+     * 
      */    
     public int getVapaus(int x, int y) {
-        return lautaTaulu[x][y].getVapaudet();
+        if (!onLaudalla(x, y)) {
+            return -1;
+        }
+        if (getRisteys(x, y) == TYHJA) {
+            return -1;
+        }
+        return lautaTaulu[x][y].getVapaudet();  
     }
     /**
      * Muuttaa yhden kiven vapausmuuttujaa. Jokaisen samaan kiviketjuun kuuluvan
@@ -160,9 +167,18 @@ public class Pelilauta {
      * @param vapaus Nolla tai suurempi arvo. 
      */
     public void setVapaus(int x, int y, int vapaus) {
+        if (!onLaudalla(x, y)) {
+            return;
+        }
         lautaTaulu[x][y].setVapaudet(vapaus);
     }
     
+    public static boolean onLaudalla(int x, int y) {
+        if ((x < 0) || (x >= koko) || (y < 0) || (y >= koko)) {
+            return false;
+        }
+        return true;
+    }
     /**
      * Asettaa laudan risteyksen sisällön. Ei sisällä mitään siirtologiikkaa,
      * käytä luokkaa placementhandler varmistamaan että sääntöjä noudatetaan.

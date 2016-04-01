@@ -140,7 +140,8 @@ public class PlacementHandler {
             pass(lauta);
             return;
         }
-        CriticalPointObserver.nollaaKaikki();
+        CriticalPointObserver.addSelfAtariMove(-1); // We don't care about self-atari after one move has passed in simulation. Self-atari knowledge is not supposed to be used
+                                                    // outside simulations.
         lauta.setKo(-1);
         lauta.setSitaEdellinen(lauta.getEdellinen());
         lauta.setEdellinen(lauta.toSimple(x, y));
@@ -259,6 +260,7 @@ public class PlacementHandler {
 
         }
         if (vapaudet == 1) {
+            CriticalPointObserver.addCaptureMove(atariPolicy);
             if (lauta.getTurn() == pelaaja) {
                 CriticalPointObserver.addSelfAtariMove(atariPolicy);
             }

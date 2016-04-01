@@ -297,9 +297,9 @@ public class GTP {
         if (uusiNode == null) {
             throw new IllegalStateException("Tyhjä siirto valittu");
         }
-        //luovutus jos voittotodennäköisyys alle 20%
+        //luovutus jos voittotodennäköisyys alle 15%
 
-        if (Node.voitonTodennakoisyys(root) < 0.2) {
+        if (Node.voitonTodennakoisyys(root) < 0.20) {
             System.out.println("= resign");
         } else if (uusiNode.getX() == -1 && uusiNode.getY() == -1) {
             System.out.println("= pass");

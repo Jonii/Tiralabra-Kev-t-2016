@@ -20,11 +20,16 @@ public class Node {
     static double epsilon = 1e-6;
     private boolean noLegalMovesAvailable;
     private int x, y, simple;
-    private int raveVierailut;
-    private int raveVoitot;
+    int raveVierailut;
+    int raveVoitot;
 
+    /**
+     * Rave-faktori. Kuinka monen simulaation jälkeen
+     * RAVE ja UCT saavat saman painoarvon. Aluksi käytetään RAVEa,
+     * mutta loppua kohden UCT:ta. Muuta parametetrillä -rave <numero>
+     */
     public static int raveSuoritukset = 1000;
-    public static int branchingFactor = 50;
+    public static int branchingFactor = 150;
     public static int laudanKoko;
     private int turn;
 
@@ -71,6 +76,22 @@ public class Node {
         this.turn = turn;
     }
 
+    public int getRaveVierailut() {
+        return raveVierailut;
+    }
+
+    public void setRaveVierailut(int raveVierailut) {
+        this.raveVierailut = raveVierailut;
+    }
+
+    public int getRaveVoitot() {
+        return raveVoitot;
+    }
+
+    public void setRaveVoitot(int raveVoitot) {
+        this.raveVoitot = raveVoitot;
+    }
+
     public Node() {
 
     }
@@ -92,6 +113,10 @@ public class Node {
         lauta.changeTurn();
         this.turn = lauta.getTurn();
         lauta.changeTurn();
+        this.raveVierailut = 8;
+        this.raveVoitot = 2;
+        this.vierailut = 4;
+        this.voitot = 1;
     }
 
     /**
@@ -220,21 +245,22 @@ public class Node {
             double raveValue
                     = raveB(raveSimulaatioita) * (c.raveVoitot / (c.raveVierailut + epsilon))
                     + (1 - raveB(raveSimulaatioita)) * (c.voitot / (c.vierailut + epsilon))
-                    + 0.1 * Math.sqrt(Math.log(vierailut + 1) / (c.vierailut + epsilon)) // exploration perhaps unnecessary in RAVE?
+                    + 0.2 * Math.sqrt(Math.log(vierailut + 1) / (c.vierailut + epsilon)) // exploration perhaps unnecessary in RAVE?
                     + r.nextDouble() * epsilon;
             // small random number to break ties randomly in unexpanded nodes
-            // System.out.println("UCT value = " + uctValue);
+            //System.out.println(c.getSimple() + "'s RAVE value = " + raveValue);
             if (raveValue > bestValue) {
                 selected = c;
                 bestValue = raveValue;
             }
         }
-        // System.out.println("Returning: " + selected);
+        //System.out.println("Returning: " + selected.getSimple());
         return selected;
     }
 
     private double raveB(int raveSimulaatioita) {
-        return Math.min(1, 1.0 * raveSimulaatioita / raveSuoritukset);
+        //return Math.min(1, 1.0 * raveSimulaatioita / raveSuoritukset);
+        return Math.sqrt(1.0 * raveSuoritukset / ((3 * raveSimulaatioita) + raveSuoritukset));
     }
 
     /**
@@ -286,13 +312,13 @@ public class Node {
         int indeksi = 0;
         int uusiX, uusiY;
         int uusiSimple;
-
+        pisteita = CriticalPointObserver.getCapturePoints(lauta, lapsiJono, mahdollisetPisteet);
         while ((indeksi < mahdollisetPisteet.length) && (pisteita < branchingFactor)) {
             uusiX = Pelilauta.toX((indeksi + offset) % mahdollisetPisteet.length);
             uusiY = Pelilauta.toY((indeksi + offset) % mahdollisetPisteet.length);
             if (mahdollisetPisteet[(indeksi + offset) % mahdollisetPisteet.length]) {
                 mahdollisetPisteet[(indeksi + offset) % mahdollisetPisteet.length] = false; //Varmistetaan että samaa siirtoa ei lasketa moneen kertaan
-
+                
                 if (PlacementHandler.onkoLaillinenSiirto(lauta, uusiX, uusiY)) {
                     lapsiJono.add(new Node(lauta, uusiX, uusiY));
                     pisteita++;
@@ -420,7 +446,16 @@ public class Node {
                 PlacementHandler.pass(lauta);
             }
         }
-
+        /*GoAI.piirraLauta(lauta);
+        String debug = "\n";
+        for (int j = Pelilauta.getKoko() - 1; j >= 0; j--) {
+            debug += "   ";
+            for (int i = 0; i < Pelilauta.getKoko(); i++) {
+                debug += " " + amafTaulu[Pelilauta.toSimple(i, j)] + " ";
+            }
+            debug += "\n";
+        }
+        GTP.logger.info(debug);*/
         return lauta;
     }
 

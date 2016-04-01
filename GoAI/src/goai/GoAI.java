@@ -24,7 +24,7 @@ public class GoAI {
     static int[][] apulautaVoitot;
     static int passauksia;
     static int resign = 0;
-    public static int simulaatioCount = 5000;
+    public static int simulaatioCount = 4000;
     private static boolean gtp = false;
 
     /**
@@ -87,8 +87,26 @@ public class GoAI {
             /* Asetetaan sopivat alkuarvot Tietokone vs Ihminen -matsille:
                 6.5 komi, 9x9 laudankoko. Diagnostiikkataulu pois näkyvistä.
              */
-            lauta = new Pelilauta(9);
+            lauta = new Pelilauta(9);                     
             Pelilauta.setKomi(6.5);
+            PlacementHandler.pelaaSiirto(lauta, 3, 3); // ________
+            PlacementHandler.pelaaSiirto(lauta, 3, 4); //|
+            PlacementHandler.pelaaSiirto(lauta, 4, 4); //|
+            PlacementHandler.pass(lauta);              //|
+            PlacementHandler.pelaaSiirto(lauta, 2, 4); //|     X
+                                                       //|   X O X
+            /*Pelilauta simuLauta;
+            int voitot = 1;
+            int simut = 1;
+            int[] amafTaulu = new int[9*9];
+            while (true) {
+                simuLauta = lauta.kopioi();
+                Node.simulate(simuLauta, amafTaulu);
+                if (Node.simulScore(simuLauta) > 0) voitot++;
+                simut++;
+                System.out.println("Voittoprosentti: " + (1.0 * voitot / simut));
+            }*/
+            
             if (true) {
                 apulautaVierailut = new int[lauta.getKoko()][lauta.getKoko()];
                 apulautaVoitot = new int[lauta.getKoko()][lauta.getKoko()];
@@ -179,7 +197,7 @@ public class GoAI {
         root.setTurn(lauta.getTurn());
 
         long now = System.currentTimeMillis();
-        int miettimisAika = 500;
+        int miettimisAika = 2500;
         int n = 1;
         while (System.currentTimeMillis() < now + miettimisAika) {
             root.selectAction(lauta);
@@ -200,7 +218,7 @@ public class GoAI {
         x = uusiNode.getX();
         y = uusiNode.getY();
 
-        if (1.0 * uusiNode.voitot / uusiNode.vierailut < 0.2) {
+        if (1.0 * uusiNode.voitot / uusiNode.vierailut < 0.02) {
             resign = lauta.getTurn();
         }
 
@@ -222,8 +240,10 @@ public class GoAI {
                 if ((x == -1) && (y == -1)) {
                     passauksia++;
                 } else {
-                    apulautaVierailut[x][y] = diagnostiikkaNode.children.getNode(i).vierailut;
-                    apulautaVoitot[x][y] = diagnostiikkaNode.children.getNode(i).voitot;
+                    apulautaVierailut[x][y] = diagnostiikkaNode.children.getNode(i).raveVierailut;
+                    apulautaVoitot[x][y] = diagnostiikkaNode.children.getNode(i).raveVoitot;
+                    //apulautaVierailut[x][y] = diagnostiikkaNode.children.getNode(i).vierailut;
+                    //apulautaVoitot[x][y] = diagnostiikkaNode.children.getNode(i).voitot;
                 }
             }
         }
