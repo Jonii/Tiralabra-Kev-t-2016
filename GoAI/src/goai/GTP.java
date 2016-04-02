@@ -44,7 +44,7 @@ public class GTP {
         try {
 
             // This block configure the logger with handler and formatter  
-            fh = new FileHandler("/home/jphanski/gtp.log");
+            fh = new FileHandler(GoAI.logFile, true);
             logger.addHandler(fh);
             SimpleFormatter formatter = new SimpleFormatter();
             fh.setFormatter(formatter);
@@ -55,7 +55,7 @@ public class GTP {
             e.printStackTrace();
         }
 
-        logger.info("Starting GTP");
+        logger.info("----------------------------------\nStarting GTP");
 
         lauta = new Pelilauta(9);
         Scanner reader = new Scanner(System.in);
@@ -73,7 +73,7 @@ public class GTP {
             } else if (komento.startsWith("PROTOCOL_VERSION")) {
                 System.out.println("= 2");
             } else if (komento.startsWith("VERSION")) {
-                System.out.println("= 1.5.1");
+                System.out.println("= 1.5.3");
             } else if (komento.startsWith("QUIT")) {
                 return;
             } else if (komento.startsWith("BOARDSIZE")) {
@@ -284,6 +284,8 @@ public class GTP {
         Node root = new Node();
         root.setTurn(lauta.getTurn());
 
+        decideSimulationKomi(lauta);
+
         long now = System.currentTimeMillis();
         int miettimisAika = 3000;
         //while (System.currentTimeMillis() < now + miettimisAika) {
@@ -304,18 +306,62 @@ public class GTP {
         } else if (uusiNode.getX() == -1 && uusiNode.getY() == -1) {
             System.out.println("= pass");
             PlacementHandler.pass(lauta);
+        } else if (decidePass(lauta, root)) {
+            System.out.println("= pass");
+            PlacementHandler.pass(lauta);
         } else {
-            if (decidePass(lauta, root)) {
-                System.out.println("= pass");
-                PlacementHandler.pass(lauta);
-            }
+            System.out.println("= " + produceCoord(uusiNode.getX(), uusiNode.getY()));
+            PlacementHandler.pelaaSiirto(lauta, uusiNode.getX(), uusiNode.getY());
+        }
+        logger.info("Voiton todennäköisyys: " + Node.voitonTodennakoisyys(root) + ".\nValittu node: " + produceCoord(uusiNode.getX(), uusiNode.getY()) + ". Playouts: " + uusiNode.voitot + "/" + uusiNode.vierailut + ".");
+    }
 
-            else {
-                System.out.println("= " + produceCoord(uusiNode.getX(), uusiNode.getY()));
-                PlacementHandler.pelaaSiirto(lauta, uusiNode.getX(), uusiNode.getY());
+    /**
+     * Tries to estimate how difficult a situation is, and adjust expectations accordingly, by modifying komi used for simulation evaluations.
+     */
+    public static void decideSimulationKomi(Pelilauta lauta) {
+        GoAI.simulateKomi = Pelilauta.getKomi();
+        GoAI.actuaSimulateWins = 1;
+        GoAI.actualSimulateGames = 1;
+        int voitot = 1;
+        int simut = 1;
+        int kerrat = 0;
+        Pelilauta simuLauta;
+        int kominMuutos = 1;
+        if (lauta.getTurn() == Pelilauta.MUSTA) {
+            kominMuutos = -1;
+        }
+        int[] amafTaulu = new int[Pelilauta.getKoko() * Pelilauta.getKoko()];
+        while (true) {
+            simuLauta = lauta.kopioi();
+            Node.simulate(simuLauta, amafTaulu);
+            if (Node.simulScore(simuLauta) == -1 * kominMuutos) {
+                voitot++;
+            }
+            simut++;
+            if (simut > 80) {
+                kerrat++;
+                if (kerrat > 5) {
+                    break;
+                }
+                if (1.0 * voitot / simut > 0.47) {
+                    if (1.0 * voitot / simut < 0.53) {
+                        break;
+                    }
+                    else { 
+                        GoAI.simulateKomi -= kominMuutos;
+                        simut = 1;
+                        voitot = 1;
+                        continue;
+                    }
+                }
+                simut = 1;
+                voitot = 1;
+                GoAI.simulateKomi += kominMuutos;
             }
         }
-        logger.info("Voiton todennäköisyys: " + Node.voitonTodennakoisyys(root) + ".\nValittu node: " + uusiNode.voitot + "/" + uusiNode.vierailut + ".");
+        //System.out.println("Simulation komi used: " + GoAI.simulateKomi);
+        logger.info("Simulation komi used: " + GoAI.simulateKomi);
     }
 
     public static boolean decidePass(Pelilauta lauta, Node node) {

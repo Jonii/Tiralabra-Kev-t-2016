@@ -260,7 +260,6 @@ public class PlacementHandler {
 
         }
         if (vapaudet == 1) {
-            CriticalPointObserver.addCaptureMove(atariPolicy);
             if (lauta.getTurn() == pelaaja) {
                 CriticalPointObserver.addSelfAtariMove(atariPolicy);
             }

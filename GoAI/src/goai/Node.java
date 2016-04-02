@@ -462,7 +462,7 @@ public class Node {
     public static int simulScore(Pelilauta lauta) {
         int x;
         int y;
-        double pisteet = -1 * lauta.getKomi(); // Alkuarvo on komi, valkealle annettava etu.
+        double pisteet = -1 * GoAI.simulateKomi; // Alkuarvo on komi, valkealle annettava etu.
         /*
         Stone scoring + silmien lasku
          */
@@ -493,6 +493,10 @@ public class Node {
         }
         //GoAI.piirraLauta(lauta);
         //System.out.println(pisteet + ", ");
+        if (pisteet - GoAI.simulateKomi + Pelilauta.getKomi() > 0) {
+            GoAI.actuaSimulateWins++;
+        }
+        GoAI.actualSimulateGames++;
         if (pisteet > 0) {
             return 1;
         }
@@ -500,7 +504,11 @@ public class Node {
     }
 
     public static double voitonTodennakoisyys(Node node) {
-        double voitot = 1.0;
+        if (node.getTurn() == Pelilauta.MUSTA) {
+            return 1.0 * GoAI.actuaSimulateWins / GoAI.actualSimulateGames;
+        }
+        return 1.0 * (GoAI.actualSimulateGames - GoAI.actuaSimulateWins) / GoAI.actualSimulateGames;
+        /*double voitot = 1.0;
         double vierailut = 1.0;
         if (node.children == null) {
             return 1;
@@ -509,7 +517,7 @@ public class Node {
             vierailut += node.children.getNode(i).vierailut;
             voitot += node.children.getNode(i).voitot;
         }
-        return voitot / vierailut;
+        return voitot / vierailut;*/
     }
 
 }

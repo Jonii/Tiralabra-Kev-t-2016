@@ -26,6 +26,15 @@ public class GoAI {
     static int resign = 0;
     public static int simulaatioCount = 4000;
     private static boolean gtp = false;
+    public static double simulateKomi;
+    public static int actuaSimulateWins;
+    public static int actualSimulateGames;
+    
+    /**
+     * By default logging is enabled, and log file will go to this file.
+     * Change at will. Also use -logfile <file path> command line option
+     */
+    public static String logFile = "/home/jphanski/BottiLogs/generic/gtp.log";
 
     /**
      * @param args kvk = kone vastaan kone matsi, gtp = Go Text Protocol
@@ -65,7 +74,12 @@ public class GoAI {
             else if (args[i].compareToIgnoreCase("-rave") == 0) {
                 i++;
                 Node.raveSuoritukset = Integer.parseInt(args[i]);
-            } else if (args[i].compareToIgnoreCase("-kvk") == 0) {
+            } 
+            else if (args[i].compareToIgnoreCase("-logfile") == 0) {
+                i++;
+                GoAI.logFile = args[i];
+            }
+            else if (args[i].compareToIgnoreCase("-kvk") == 0) {
                 koneVastaanKone = true;
             }
             i++;
@@ -117,6 +131,7 @@ public class GoAI {
 
                 piirraLauta(lauta);
                 System.out.print("Tietokone miettii...");
+                GTP.decideSimulationKomi(lauta); 
                 pelaaSiirtoKoneelle();
 
                 System.out.println("Suoritettu " + simulaatioita + " simulaatiota");
@@ -218,7 +233,7 @@ public class GoAI {
         x = uusiNode.getX();
         y = uusiNode.getY();
 
-        if (1.0 * uusiNode.voitot / uusiNode.vierailut < 0.02) {
+        if (1.0 * uusiNode.voitot / uusiNode.vierailut < 0.15) {
             resign = lauta.getTurn();
         }
 
