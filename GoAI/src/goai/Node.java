@@ -446,12 +446,20 @@ public class Node {
                 PlacementHandler.pass(lauta);
             }
         }
-        /*GoAI.piirraLauta(lauta);
-        String debug = "\n";
+        //GoAI.piirraLauta(lauta);
+        /*String debug = "\n";
         for (int j = Pelilauta.getKoko() - 1; j >= 0; j--) {
             debug += "   ";
             for (int i = 0; i < Pelilauta.getKoko(); i++) {
-                debug += " " + amafTaulu[Pelilauta.toSimple(i, j)] + " ";
+                if (lauta.getRisteys(i, j) == Pelilauta.MUSTA) {
+                    debug += " " + "X" + " ";
+                }
+                else if (lauta.getRisteys(i, j) == Pelilauta.VALKEA) {
+                    debug += " " + "O" + " ";
+                }
+                else {
+                    debug += " " + "." + " ";
+                }
             }
             debug += "\n";
         }
@@ -493,7 +501,7 @@ public class Node {
         }
         //GoAI.piirraLauta(lauta);
         //System.out.println(pisteet + ", ");
-        if (pisteet - GoAI.simulateKomi + Pelilauta.getKomi() > 0) {
+        if (pisteet + GoAI.simulateKomi - Pelilauta.getKomi() > 0) { // NOTE: Simulate komi is added and real komi taken away, not the other way around.
             GoAI.actuaSimulateWins++;
         }
         GoAI.actualSimulateGames++;

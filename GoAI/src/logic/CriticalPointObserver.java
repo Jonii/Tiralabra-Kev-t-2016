@@ -71,14 +71,8 @@ public class CriticalPointObserver {
                 poistetut++;
                 continue;
             }
-            if ((lauta.getVapaus(Pelilauta.toX(i) + 1, Pelilauta.toY(i)) <= 2)
-                    || (lauta.getVapaus(Pelilauta.toX(i) - 1, Pelilauta.toY(i)) <= 2)
-                    || (lauta.getVapaus(Pelilauta.toX(i), Pelilauta.toY(i) + 1) <= 2)
-                    || (lauta.getVapaus(Pelilauta.toX(i), Pelilauta.toY(i) - 1) <= 2)) {
-                if ((lauta.getVapaus(Pelilauta.toX(i) + 1, Pelilauta.toY(i)) == 1)
-                        || (lauta.getVapaus(Pelilauta.toX(i) - 1, Pelilauta.toY(i)) == 1)
-                        || (lauta.getVapaus(Pelilauta.toX(i), Pelilauta.toY(i) + 1) == 1)
-                        || (lauta.getVapaus(Pelilauta.toX(i), Pelilauta.toY(i) - 1) == 1)) {
+            if (surroundingLiberties(lauta, i, 2) || surroundingLiberties(lauta, i, 1)) {
+                if (surroundingLiberties(lauta, i, 1)) {
                     currentWeight *= 2;
                 }
                 if (wouldBeSelfAtari(i, lauta)) {
@@ -86,7 +80,7 @@ public class CriticalPointObserver {
                 }
                 uusi = new Node(lauta, Pelilauta.toX(i), Pelilauta.toY(i));
                 uusi.setRaveVierailut(currentWeight);
-                uusi.setRaveVoitot((currentWeight * 16) / 20);
+                uusi.setRaveVoitot((currentWeight * 11) / 20);
                 lapsiJono.add(uusi);
                 notVisited[i] = false;
                 currentWeight = weight;
@@ -96,6 +90,20 @@ public class CriticalPointObserver {
 
         }
         return (Pelilauta.getKoko() * Pelilauta.getKoko()) - poistetut;
+    }
+    
+    /**
+     * Checks if surrounding points include a group that has @liberties liberties
+     * @param lauta Game board to check from
+     * @param simple Coordinate in simple form, whose surroundings we check.
+     * @param liberties How many liberties we hope to find
+     * @return True if a group, friend or foe, has this count of liberties.
+     */
+    public static boolean surroundingLiberties(Pelilauta lauta, int simple, int liberties) {
+        return (lauta.getVapaus(Pelilauta.toX(simple) + 1, Pelilauta.toY(simple)) == liberties)
+                || (lauta.getVapaus(Pelilauta.toX(simple) - 1, Pelilauta.toY(simple)) == liberties)
+                || (lauta.getVapaus(Pelilauta.toX(simple), Pelilauta.toY(simple) + 1) == liberties)
+                || (lauta.getVapaus(Pelilauta.toX(simple), Pelilauta.toY(simple) - 1) == liberties);
     }
 
     /*private static void removeIndex(int poistettava) {
@@ -109,10 +117,10 @@ public class CriticalPointObserver {
         int vapaudet = 0;
         int x = Pelilauta.toX(simple);
         int y = Pelilauta.toY(simple);
-        vapaudet += providesLiberties(x + 1, y, lauta, vapaudet);
-        vapaudet += providesLiberties(x - 1, y, lauta, vapaudet);
-        vapaudet += providesLiberties(x, y + 1, lauta, vapaudet);
-        vapaudet += providesLiberties(x, y - 1, lauta, vapaudet);
+        vapaudet += providesLiberties(x + 1, y, lauta);
+        vapaudet += providesLiberties(x - 1, y, lauta);
+        vapaudet += providesLiberties(x, y + 1, lauta);
+        vapaudet += providesLiberties(x, y - 1, lauta);
         if (vapaudet > 1) {
             return false;
         }
@@ -121,8 +129,15 @@ public class CriticalPointObserver {
 
         return (vapausTesti.getVapaus(x, y) == 1);
     }
-
-    public static int providesLiberties(int x, int y, Pelilauta lauta, int vapaudet) {
+    /**
+     * checks if move would provide extra liberties. Doesn't try to guess what groups of two liberties would provide, since playing close
+     * to two such groups may or may not be self-atari. 
+     * @param x Tested x coordinate on game board
+     * @param y tested y coordinate on game board
+     * @param lauta Game board
+     * @return 
+     */
+    public static int providesLiberties(int x, int y, Pelilauta lauta) {
         if (Pelilauta.onLaudalla(x, y)) {
             if (lauta.getRisteys(x, y) == lauta.getTurn()) {
                 if (lauta.getVapaus(x, y) > 2) {

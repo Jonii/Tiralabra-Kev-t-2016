@@ -29,32 +29,15 @@ public class GTP {
     private static String komento;
     private static Pelilauta lauta;
     private static int koko;
-    public static Logger logger;
+    private static Logger logger;
 
     /**
      * lukee GTP-komentoja hamaan loppuun saakka.
      */
     public static void read() {
-
-        logger = Logger.getLogger("MyLog");
-        logger.setUseParentHandlers(false);
         double score;
-        FileHandler fh;
-
-        try {
-
-            // This block configure the logger with handler and formatter  
-            fh = new FileHandler(GoAI.logFile, true);
-            logger.addHandler(fh);
-            SimpleFormatter formatter = new SimpleFormatter();
-            fh.setFormatter(formatter);
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (SecurityException e) {
-            e.printStackTrace();
-        }
-
+        logger = GoAI.logger;
+        
         logger.info("----------------------------------\nStarting GTP");
 
         lauta = new Pelilauta(9);
@@ -73,7 +56,7 @@ public class GTP {
             } else if (komento.startsWith("PROTOCOL_VERSION")) {
                 System.out.println("= 2");
             } else if (komento.startsWith("VERSION")) {
-                System.out.println("= 1.5.3");
+                System.out.println("= 1.5.6");
             } else if (komento.startsWith("QUIT")) {
                 return;
             } else if (komento.startsWith("BOARDSIZE")) {
@@ -89,7 +72,7 @@ public class GTP {
             } else if (komento.startsWith("FINAL_STATUS_LIST")) {
                 final_status_list();
             } else if (komento.startsWith("FINAL_SCORE")) {
-                score = score();
+                score = score(lauta);
                 if (score < 0) {
                     System.out.println("= W+" + (-1 * score));
                 } else {
@@ -166,7 +149,7 @@ public class GTP {
         }
     }
 
-    public static double score() {
+    public static double score(Pelilauta lauta) {
         return GoAI.laskePisteet(GoAI.decideDead(lauta), lauta);
     }
 
@@ -270,6 +253,7 @@ public class GTP {
      * Tulostuksen lisäksi oma sisäinen tila päivitetään tällä siirrolla.
      */
     private static void GeneroiSiirto() {
+        logger = GoAI.logger;
         int simulaatioita = 0;
         if (komento.startsWith("GENMOVE B")) {
             if (lauta.getTurn() != Pelilauta.MUSTA) {
@@ -320,6 +304,7 @@ public class GTP {
      * Tries to estimate how difficult a situation is, and adjust expectations accordingly, by modifying komi used for simulation evaluations.
      */
     public static void decideSimulationKomi(Pelilauta lauta) {
+        logger = GoAI.logger;
         GoAI.simulateKomi = Pelilauta.getKomi();
         GoAI.actuaSimulateWins = 1;
         GoAI.actualSimulateGames = 1;
@@ -366,15 +351,23 @@ public class GTP {
 
     public static boolean decidePass(Pelilauta lauta, Node node) {
         Pelilauta simuLauta;
+        GoAI.simulateKomi = Pelilauta.getKomi();
         int[] amafTaulu = new int[Pelilauta.getKoko() * Pelilauta.getKoko()];
         int voitot = 0;
-        double score = score();
+        double score = score(lauta);
         if ((score > 0 && lauta.getTurn() == Pelilauta.VALKEA) || (score < 0 && lauta.getTurn() == Pelilauta.MUSTA)) {
             return false;
         }
-        if (Node.voitonTodennakoisyys(node) > 0.95) {
-            return true;
+        for (int i = 0; i<200; i++) {
+            simuLauta = lauta.kopioi();
+            PlacementHandler.pass(simuLauta);
+            Node.simulate(simuLauta, amafTaulu);
+            if ((Node.simulScore(simuLauta) > 0 && lauta.getTurn() == Pelilauta.MUSTA) ||
+                    (Node.simulScore(simuLauta) < 0 && lauta.getTurn() == Pelilauta.VALKEA)) {
+                voitot++;
+            }
         }
+        if (voitot > 195) return true;
         return false;
     }
 }

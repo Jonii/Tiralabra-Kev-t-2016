@@ -7,7 +7,11 @@ package goai;
 
 import goai.Node;
 import goai.Pelilauta;
+import java.io.IOException;
 import java.util.Scanner;
+import java.util.logging.FileHandler;
+import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
 import logic.Pino;
 import logic.PlacementHandler;
 
@@ -29,6 +33,7 @@ public class GoAI {
     public static double simulateKomi;
     public static int actuaSimulateWins;
     public static int actualSimulateGames;
+    public static Logger logger;
     
     /**
      * By default logging is enabled, and log file will go to this file.
@@ -41,11 +46,13 @@ public class GoAI {
      * interfacen käyttö tavallisen käyttöliittymän sijaan.
      */
     public static void main(String[] args) {
+        
         boolean koneVastaanKone = false;
         int x;
         int y;
         String komento;
-
+        boolean selfLearn = false;
+        
         int i = 0;
         while (i < args.length) {
 
@@ -81,10 +88,38 @@ public class GoAI {
             }
             else if (args[i].compareToIgnoreCase("-kvk") == 0) {
                 koneVastaanKone = true;
+            } else if (args[i].compareToIgnoreCase("-learn") == 0) {
+                i++;
+                selfLearn = true;
             }
             i++;
         }
-        if (gtp) {
+        
+        logger = Logger.getLogger("goailog");
+        logger.setUseParentHandlers(false);
+        
+        FileHandler fh;
+
+        try {
+
+            // This block configure the logger with handler and formatter  
+            fh = new FileHandler(GoAI.logFile, true);
+            logger.addHandler(fh);
+            SimpleFormatter formatter = new SimpleFormatter();
+            fh.setFormatter(formatter);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (SecurityException e) {
+            e.printStackTrace();
+        }
+        
+        Pattern.init();
+        Pattern.writeOut();
+        if (selfLearn) {
+            BayesLearner.main();
+        }
+        else if (gtp) {
             GTP.read();
         } else {
 
