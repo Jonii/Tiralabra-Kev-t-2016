@@ -32,6 +32,7 @@ public class Node {
     public static int branchingFactor = 150;
     public static int laudanKoko;
     private int turn;
+    private double tieBreaker;
 
     public int getX() {
         return x;
@@ -91,9 +92,12 @@ public class Node {
     public void setRaveVoitot(int raveVoitot) {
         this.raveVoitot = raveVoitot;
     }
+    public double getTieBreaker() {
+        return tieBreaker;
+    }
 
     public Node() {
-
+        tieBreaker = r.nextDouble();
     }
 
     /**
@@ -117,6 +121,7 @@ public class Node {
         this.raveVoitot = 2;
         this.vierailut = 4;
         this.voitot = 1;
+        tieBreaker = r.nextDouble();
     }
 
     /**
@@ -301,29 +306,29 @@ public class Node {
      * harkitsemaan. Tämänhetkinen versio ottaa satunnaisesti 20 pistettä.
      */
     public void expand(Pelilauta lauta) {
-        boolean[] mahdollisetPisteet = new boolean[Pelilauta.getKoko() * Pelilauta.getKoko()];
+        boolean[] visited = new boolean[Pelilauta.getKoko() * Pelilauta.getKoko()];
         int pisteita = 0;
         Pino<Node> lapsiJono = new Pino<>();
 
-        for (int i = 0; i < mahdollisetPisteet.length; i++) {
-            mahdollisetPisteet[i] = true;
+        for (int i = 0; i < visited.length; i++) {
+            visited[i] = true;
         }
-        int offset = r.nextInt(mahdollisetPisteet.length);
+        int offset = r.nextInt(visited.length);
         int indeksi = 0;
         int uusiX, uusiY;
         int uusiSimple;
-        pisteita = CriticalPointObserver.getCapturePoints(lauta, lapsiJono, mahdollisetPisteet);
-        while ((indeksi < mahdollisetPisteet.length) && (pisteita < branchingFactor)) {
-            uusiX = Pelilauta.toX((indeksi + offset) % mahdollisetPisteet.length);
-            uusiY = Pelilauta.toY((indeksi + offset) % mahdollisetPisteet.length);
-            if (mahdollisetPisteet[(indeksi + offset) % mahdollisetPisteet.length]) {
-                mahdollisetPisteet[(indeksi + offset) % mahdollisetPisteet.length] = false; //Varmistetaan että samaa siirtoa ei lasketa moneen kertaan
+        pisteita = CriticalPointObserver.getCapturePoints(lauta, lapsiJono, visited);
+        while ((indeksi < visited.length) && (pisteita < branchingFactor)) {
+            uusiX = Pelilauta.toX((indeksi + offset) % visited.length);
+            uusiY = Pelilauta.toY((indeksi + offset) % visited.length);
+            if (visited[(indeksi + offset) % visited.length]) {
+                visited[(indeksi + offset) % visited.length] = false; //Varmistetaan että samaa siirtoa ei lasketa moneen kertaan
                 
                 if (PlacementHandler.onkoLaillinenSiirto(lauta, uusiX, uusiY)) {
                     lapsiJono.add(new Node(lauta, uusiX, uusiY));
                     pisteita++;
                     indeksi = 0;
-                    offset = r.nextInt(mahdollisetPisteet.length);
+                    offset = r.nextInt(visited.length);
                     continue;
                 }
             }
@@ -341,16 +346,59 @@ public class Node {
         }
         this.children = new NodenLapset(pisteet);
     }
+    
+    public void bayesExpand(Pelilauta lauta) {
+        double[] values = new double[Pelilauta.getKoko() * Pelilauta.getKoko()];
+        int[] strengths = new int[values.length];
+        children = new NodenLapset();
+        double boardSum = 0.0;
+        int strengthOfPrediction = 0;
+        Node newNode;
 
-    /*private boolean lisaaJonoon(int simple, Pino<Node> lapsiJono, boolean[] mahdollisetPisteet) {
+        for (int i = 0; i < values.length; i++) {
+            values[i] = Pattern.valueOf(Pattern.match(lauta, Pelilauta.toX(i), Pelilauta.toY(i)));
+            strengths[i] = Pattern.getSeenTotal(Pattern.match(lauta, Pelilauta.toX(i), Pelilauta.toY(i)));
+            boardSum += values[i];
+            strengthOfPrediction += Pattern.getSeenTotal(Pattern.match(lauta, Pelilauta.toX(i), Pelilauta.toY(i)));
+        }
+        Pelilauta testiLauta;
+        double difference;
+        int differenceInStrength;
+        for (int i = 0; i<values.length; i++) {
+            if (!PlacementHandler.onkoLaillinenSiirto(lauta, Pelilauta.toX(i), Pelilauta.toY(i))) {
+                continue;
+            }
+            difference = 0.0;
+            differenceInStrength = 0;
+            testiLauta = lauta.kopioi();
+            PlacementHandler.pelaaSiirto(testiLauta, Pelilauta.toX(i), Pelilauta.toY(i));
+            for (int x = -1; x < 2; x++) {
+                for (int y = -1; y < 2; y++) {
+                    if (Pelilauta.onLaudalla(Pelilauta.toX(i) + x, Pelilauta.toY(i) + y)) {
+                        difference += values[i] - Pattern.valueOf(Pattern.match(testiLauta, Pelilauta.toX(i) + x, Pelilauta.toY(i) + y));
+                        differenceInStrength += strengths[i] - Pattern.getSeenTotal(Pattern.match(testiLauta, Pelilauta.toX(i), Pelilauta.toY(i)));
+                    }
+                }
+            }
+            newNode = new Node(lauta, Pelilauta.toX(i), Pelilauta.toY(i));
+            newNode.raveVierailut = (int) Math.round(Math.log(strengthOfPrediction - differenceInStrength) * 1000);
+            newNode.raveVoitot = (int) Math.round(newNode.raveVierailut * (1 / (1 + Math.pow(Math.E, boardSum - difference))));
+            children.addNode(newNode);
+        }
+
+        Node passaus = new Node(lauta, -1, -1);
+        children.addNode(passaus);
+    }
+
+    /*private boolean lisaaJonoon(int simple, Pino<Node> lapsiJono, boolean[] visited) {
         int x;
         int y;
         if (simple != -1) {
             x = Pelilauta.toX(simple);
             y = Pelilauta.toY(simple);
-            if (mahdollisetPisteet[simple]) {
+            if (visited[simple]) {
                 lapsiJono.add(new Node(lauta, x, y));
-                mahdollisetPisteet[simple] = false;
+                visited[simple] = false;
                 return true;
             }
         }

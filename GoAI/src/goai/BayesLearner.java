@@ -24,11 +24,12 @@ public class BayesLearner {
         double score = 0;
         int voittaja;
         int kerrat = 0;
-        Node valinta = new Node();
-        while (kerrat < 5) {
+        Node valinta;
+        while (kerrat < 100) {
             lauta = new Pelilauta(9);
             Pelilauta.setKomi(7.5);
             voittaja = 0;
+            valinta = new Node();
             while (true) {
                 Node root = valinta;
                 root.setTurn(lauta.getTurn());

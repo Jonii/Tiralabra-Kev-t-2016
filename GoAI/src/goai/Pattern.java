@@ -35,11 +35,18 @@ public class Pattern {
     private static Pattern[] patterns;
     private static Logger logger;
     public static String patternDataFilePath = "/home/jphanski/goai/patterndata";
+    private static long totalPatternsSeen;
     
     public Pattern() {
     }
-
+    
+    public static double valueOf(int pattern) {
+        return Math.log((1.0 * patterns[pattern].seenTotal - patterns[pattern].blackWins + 1) / (patterns[pattern].seenTotal + 2))
+                - Math.log((1.0 * patterns[pattern].blackWins + 1) / (patterns[pattern].seenTotal + 2));
+    }
+    
     public static void init() {
+        totalPatternsSeen = 0;
         logger = GoAI.logger;
         patterns = new Pattern[variations];
         Path file = Paths.get(patternDataFilePath);
@@ -50,6 +57,7 @@ public class Pattern {
                 patterns[i] = new Pattern(i);
                 patterns[i].blackWins = Integer.parseInt(reader.readLine());
                 patterns[i].seenTotal = Integer.parseInt(reader.readLine());
+                totalPatternsSeen += patterns[i].seenTotal;
             }
         } catch (IOException ex) {
             logger.warning("Pattern data file missing:\n" + ex);
@@ -129,7 +137,9 @@ public class Pattern {
             }
         }
     }
-
+    public static int getSeenTotal(int pattern) {
+        return patterns[pattern].seenTotal;
+    }
     public static int match(Pelilauta lauta, int x, int y) {
         int testiPattern = 0;
 
@@ -204,5 +214,8 @@ public class Pattern {
             }
         }
         return palautusPattern;
+    }
+    public static long getTotalPatternsSeen() {
+        return totalPatternsSeen;
     }
 }
