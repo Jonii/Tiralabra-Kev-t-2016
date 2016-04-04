@@ -32,13 +32,14 @@ public class NodenLapset {
         }
         this.maxKoko = maxKoko;
         if (koko > maxKoko) {
+            koko = maxKoko;
             Node[] uusiLapset = new Node[maxKoko];
             for (int i = 0; i<maxKoko; i++) {
                 uusiLapset[i] = lapset[i];
             }
             lapset = uusiLapset;
         }        
-        koko = maxKoko;
+        
     }
     public NodenLapset() {
         this.koko = 0;
@@ -59,9 +60,9 @@ public class NodenLapset {
         if (sortedBySimple) {
             sortByVisits();
         }
-        if (koko >= maxKoko) {
-            if (valueOf(node) + node.getTieBreaker() > valueOf(getNode(maxKoko)) + getNode(maxKoko).getTieBreaker()) {
-                lapset[maxKoko] = node;
+        if (koko == maxKoko) {
+            if (valueOf(node) + node.getTieBreaker() > valueOf(lapset[koko-1]) + lapset[koko-1].getTieBreaker()) {
+                lapset[koko-1] = node;
                 sortByVisits();
             }
             return;

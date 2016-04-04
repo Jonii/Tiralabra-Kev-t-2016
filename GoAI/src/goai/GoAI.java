@@ -115,7 +115,7 @@ public class GoAI {
         }
         
         Pattern.init();
-        Pattern.writeOut();
+        
         if (selfLearn) {
             BayesLearner.main();
         }
@@ -247,7 +247,7 @@ public class GoAI {
         root.setTurn(lauta.getTurn());
 
         long now = System.currentTimeMillis();
-        int miettimisAika = 2500;
+        int miettimisAika = 22500;
         int n = 1;
         while (System.currentTimeMillis() < now + miettimisAika) {
             root.selectAction(lauta);

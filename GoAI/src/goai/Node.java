@@ -154,6 +154,7 @@ public class Node {
             }
             visited.add(currentNode);
         }
+        //currentNode.bayesExpand(currentLauta);
         currentNode.expand(currentLauta);
 
         if (raveSuoritukset == 0) {
@@ -161,6 +162,16 @@ public class Node {
             PlacementHandler.pelaaSiirto(currentLauta, currentNode.getX(), currentNode.getY());
         } else {
             currentNode = currentNode.selectRAVE(currentNode.vierailut);
+            if (currentNode.getX() == -1 && currentNode.getY() == -1 && currentLauta.isPassedOnLastMove()) {                
+                tulos = -1;
+                if (GTP.score(currentLauta) > 0) tulos = 1;
+                
+                updateRAVE(visited, tulos, amafTaulu);
+                
+                currentNode.children = null;
+                
+                return;
+            }
             if ((Pelilauta.toSimple(currentNode.getX(), currentNode.getY()) > -1) && (amafTaulu[Pelilauta.toSimple(currentNode.getX(), currentNode.getY())] == 0)) {
                 amafTaulu[Pelilauta.toSimple(currentNode.getX(), currentNode.getY())] = currentNode.getTurn();
             }
@@ -307,7 +318,7 @@ public class Node {
      */
     public void expand(Pelilauta lauta) {
         boolean[] visited = new boolean[Pelilauta.getKoko() * Pelilauta.getKoko()];
-        int pisteita = 0;
+        int pisteita;
         Pino<Node> lapsiJono = new Pino<>();
 
         for (int i = 0; i < visited.length; i++) {
@@ -316,7 +327,6 @@ public class Node {
         int offset = r.nextInt(visited.length);
         int indeksi = 0;
         int uusiX, uusiY;
-        int uusiSimple;
         pisteita = CriticalPointObserver.getCapturePoints(lauta, lapsiJono, visited);
         while ((indeksi < visited.length) && (pisteita < branchingFactor)) {
             uusiX = Pelilauta.toX((indeksi + offset) % visited.length);
@@ -382,12 +392,20 @@ public class Node {
             }
             newNode = new Node(lauta, Pelilauta.toX(i), Pelilauta.toY(i));
             newNode.raveVierailut = (int) Math.round(Math.log(strengthOfPrediction - differenceInStrength) * 1000);
-            newNode.raveVoitot = (int) Math.round(newNode.raveVierailut * (1 / (1 + Math.pow(Math.E, boardSum - difference))));
-            children.addNode(newNode);
+            if (lauta.getTurn() == Pelilauta.MUSTA) {
+                newNode.raveVoitot = (int) Math.round(newNode.raveVierailut * (1 / (1 + Math.pow(Math.E, boardSum - difference))));
+            }
+            else {
+                newNode.raveVoitot = (int) Math.round(newNode.raveVierailut * (1 - (1 / (1 + Math.pow(Math.E, boardSum - difference)))));
+            }
+            if (1.0 * newNode.raveVoitot / newNode.raveVierailut > 0.44) {
+                children.addNode(newNode);
+            }
         }
-
+        children.setMaxKoko(branchingFactor);
         Node passaus = new Node(lauta, -1, -1);
         children.addNode(passaus);
+        children.sort();
     }
 
     /*private boolean lisaaJonoon(int simple, Pino<Node> lapsiJono, boolean[] visited) {
