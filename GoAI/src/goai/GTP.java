@@ -265,19 +265,9 @@ public class GTP {
                 lauta.changeTurn();
             }
         }
-        Node root = new Node();
-        root.setTurn(lauta.getTurn());
-
-        decideSimulationKomi(lauta);
-
+        
         long now = System.currentTimeMillis();
-        int miettimisAika = 3000;
-        //while (System.currentTimeMillis() < now + miettimisAika) {
-        while (simulaatioita < GoAI.simulaatioCount) {
-            root.selectAction(lauta);
-            simulaatioita++;
-        }
-        Node uusiNode = root.annaValinta();
+        Node uusiNode = GoAI.genmove(GTP.lauta, simulaatioita);
         logger.info("Suoritettiin " + simulaatioita + " simulaatiota ajassa " + (1.0 * (System.currentTimeMillis() - now) / 1000) + "s.");
 
         if (uusiNode == null) {
@@ -285,20 +275,22 @@ public class GTP {
         }
         //luovutus jos voittotodennäköisyys alle 15%
 
-        if (Node.voitonTodennakoisyys(root) < 0.20) {
+        if (GoAI.voitonTodennakoisyys(lauta.getTurn()) < 0.20) {
             System.out.println("= resign");
         } else if (uusiNode.getX() == -1 && uusiNode.getY() == -1) {
             System.out.println("= pass");
             PlacementHandler.pass(lauta);
-        } else if (decidePass(lauta, root)) {
+        } else if (decidePass(lauta)) {
             System.out.println("= pass");
             PlacementHandler.pass(lauta);
         } else {
             System.out.println("= " + produceCoord(uusiNode.getX(), uusiNode.getY()));
             PlacementHandler.pelaaSiirto(lauta, uusiNode.getX(), uusiNode.getY());
         }
-        logger.info("Voiton todennäköisyys: " + Node.voitonTodennakoisyys(root) + ".\nValittu node: " + produceCoord(uusiNode.getX(), uusiNode.getY()) + ". Playouts: " + uusiNode.voitot + "/" + uusiNode.vierailut + ".");
+        logger.info("Mustan voiton todennäköisyys: " + GoAI.voitonTodennakoisyys(Pelilauta.MUSTA) + ".\nValittu node: " + produceCoord(uusiNode.getX(), uusiNode.getY()) + ". Playouts: " + uusiNode.voitot + "/" + uusiNode.vierailut + ".");
+ 
     }
+
 
     /**
      * Tries to estimate how difficult a situation is, and adjust expectations accordingly, by modifying komi used for simulation evaluations.
@@ -349,7 +341,7 @@ public class GTP {
         logger.info("Simulation komi used: " + GoAI.simulateKomi);
     }
 
-    public static boolean decidePass(Pelilauta lauta, Node node) {
+    public static boolean decidePass(Pelilauta lauta) {
         Pelilauta simuLauta;
         GoAI.simulateKomi = Pelilauta.getKomi();
         int[] amafTaulu = new int[Pelilauta.getKoko() * Pelilauta.getKoko()];

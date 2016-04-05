@@ -25,7 +25,7 @@ public class BayesLearner {
         int voittaja;
         int kerrat = 0;
         Node valinta;
-        while (kerrat < 100) {
+        while (kerrat < 30) {
             lauta = new Pelilauta(9);
             Pelilauta.setKomi(7.5);
             voittaja = 0;
@@ -47,7 +47,7 @@ public class BayesLearner {
                 }
                 //luovutus jos voittotodennäköisyys alle 15%
 
-                if (Node.voitonTodennakoisyys(root) < 0.15) {
+                if (GoAI.voitonTodennakoisyys(root.getTurn()) < 0.15) {
                     logger.info("Peli valmis, luovutusvoitto.");
                     if (lauta.getTurn() == Pelilauta.MUSTA) {
                         voittaja = -1;
@@ -66,15 +66,15 @@ public class BayesLearner {
                     if (!PlacementHandler.onkoLaillinenSiirto(lauta, valinta.getX(), valinta.getY())) {
                         throw new IllegalStateException("Learning gone wrong, illegal move attempted");
                     }
-                    PlacementHandler.pelaaSiirto(lauta, valinta.getX(), valinta.getY());
                     Pattern.pelaaPiste(lauta,valinta.getX(), valinta.getY());
+                    PlacementHandler.pelaaSiirto(lauta, valinta.getX(), valinta.getY());
                 }
                 logger.info("Siirto numero " + lauta.getMoveNumber() + " pelattu: " + GTP.produceCoord(valinta.getX(), valinta.getY()));
                 System.out.println("Siirto numero " + lauta.getMoveNumber() + " pelattu: " + GTP.produceCoord(valinta.getX(), valinta.getY()));
             }
             
             //päivitä tiedot, aloita uusi peli.
-            System.out.println("Peli valmis");
+            System.out.println("Peli nro. " + (kerrat + 1) + " valmis");
             if (voittaja == 0) {
                 score = GTP.score(lauta);
                 Pattern.ilmoitaVoittaja(score);

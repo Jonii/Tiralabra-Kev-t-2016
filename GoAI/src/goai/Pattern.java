@@ -25,6 +25,10 @@ import logic.PlacementHandler;
  */
 public class Pattern {
 
+    static double patternMovePredictions(int pattern, int x, int y) {
+        return (1.0 + patterns[pattern].predictedCorrectly[x+1][y+1]) / (100.0 + patterns[pattern].predicted[x+1][y+1]);
+    }
+
     private int blackWins;
     private int seenTotal;
     private int seen;
@@ -88,8 +92,8 @@ public class Pattern {
                 writer.write(patterns[i].seenTotal + "\n");
                 for (int j = 0; j < 3; j++) {
                     for (int k = 0; k < 3; k++) {
-                        writer.write(patterns[i].predictedCorrectly[j][k]);
-                        writer.write(patterns[i].predicted[j][k]);
+                        writer.write(patterns[i].predictedCorrectly[j][k] + "\n");
+                        writer.write(patterns[i].predicted[j][k] + "\n");
                     }
                 }
             }
@@ -111,6 +115,9 @@ public class Pattern {
                     pattern = match(lauta, x + i, y + j);
                     patterns[pattern].seen++;
                     
+                    if (lauta.getTurn() == Pelilauta.VALKEA) {
+                        pattern = swapColors(pattern);
+                    }
                     //Learning to guess next move
                     rotateX = -i;
                     rotateY = -j;
@@ -132,26 +139,31 @@ public class Pattern {
                         if (mirror) {
                             rotatePattern = mirror(rotatePattern);
                             patterns[rotatePattern].predictedCorrectly[-rotateX + 1][rotateY + 1]++;
-                            patterns[swapColors(rotatePattern)].predictedCorrectly[-rotateX + 1][rotateY + 1]++;
                             rotatePattern = mirror(rotatePattern);
                         }                        
                         patterns[rotate(pattern)].predictedCorrectly[rotateX + 1][rotateY + 1]++;
-                        patterns[swapColors(rotate(pattern))].predictedCorrectly[rotateX + 1][rotateY + 1]++;
                         rotatePattern = rotate(rotatePattern);
                         tmp = rotateX;
                         rotateX = rotateY;
                         rotateY = -tmp;
+                    }
+                    if (pattern == 0 && i == 0 && j == 0) {
+                        patterns[pattern].predictedCorrectly[1][1] -= 3;
                     }
                 }
             }
         }
         for (int i = 0; i<Pelilauta.getKoko() * Pelilauta.getKoko(); i++) {
             pattern = match(lauta, Pelilauta.toX(i), Pelilauta.toY(i));
+            if (lauta.getTurn() == Pelilauta.VALKEA) {
+                pattern = swapColors(pattern);
+            }
             for (int j = 0; j<patterns[pattern].symmetries.length; j++) {
                 for (int k = 0; k<3; k++) {
                     for (int l = 0; l<3; l++) {
-                        patterns[patterns[pattern].symmetries[j]].predicted[k][l]++;
-                        patterns[patterns[pattern].colorSwapSymmetries[j]].predicted[k][l]++;
+                        if (PlacementHandler.onkoLaillinenSiirto(lauta, Pelilauta.toX(i) + k-1, Pelilauta.toY(i) + l-1)) {
+                            patterns[patterns[pattern].symmetries[j]].predicted[k][l]++;
+                        }
                     }
                 }
             }
@@ -280,7 +292,7 @@ public class Pattern {
         return (pattern / kolmosenKanta) % 3;
     }
 
-    private static int swapColors(int pattern) {
+    public static int swapColors(int pattern) {
         int palautusPattern = 0;
         int color;
         for (int i = -1; i < 2; i++) {

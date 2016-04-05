@@ -24,9 +24,9 @@ public class Node {
     int raveVoitot;
 
     /**
-     * Rave-faktori. Kuinka monen simulaation jälkeen
-     * RAVE ja UCT saavat saman painoarvon. Aluksi käytetään RAVEa,
-     * mutta loppua kohden UCT:ta. Muuta parametetrillä -rave <numero>
+     * Rave-faktori. Kuinka monen simulaation jälkeen RAVE ja UCT saavat saman
+     * painoarvon. Aluksi käytetään RAVEa, mutta loppua kohden UCT:ta. Muuta
+     * parametetrillä -rave <numero>
      */
     public static int raveSuoritukset = 1000;
     public static int branchingFactor = 150;
@@ -92,6 +92,7 @@ public class Node {
     public void setRaveVoitot(int raveVoitot) {
         this.raveVoitot = raveVoitot;
     }
+
     public double getTieBreaker() {
         return tieBreaker;
     }
@@ -154,7 +155,7 @@ public class Node {
             }
             visited.add(currentNode);
         }
-        //currentNode.bayesExpand(currentLauta);
+        //currentNode.bayesExpand2(currentLauta, branchingFactor);
         currentNode.expand(currentLauta);
 
         if (raveSuoritukset == 0) {
@@ -162,14 +163,16 @@ public class Node {
             PlacementHandler.pelaaSiirto(currentLauta, currentNode.getX(), currentNode.getY());
         } else {
             currentNode = currentNode.selectRAVE(currentNode.vierailut);
-            if (currentNode.getX() == -1 && currentNode.getY() == -1 && currentLauta.isPassedOnLastMove()) {                
+            if (currentNode.getX() == -1 && currentNode.getY() == -1 && currentLauta.isPassedOnLastMove()) {
                 tulos = -1;
-                if (GTP.score(currentLauta) > 0) tulos = 1;
-                
+                if (GTP.score(currentLauta) > 0) {
+                    tulos = 1;
+                }
+
                 updateRAVE(visited, tulos, amafTaulu);
-                
+
                 currentNode.children = null;
-                
+
                 return;
             }
             if ((Pelilauta.toSimple(currentNode.getX(), currentNode.getY()) > -1) && (amafTaulu[Pelilauta.toSimple(currentNode.getX(), currentNode.getY())] == 0)) {
@@ -333,7 +336,7 @@ public class Node {
             uusiY = Pelilauta.toY((indeksi + offset) % visited.length);
             if (visited[(indeksi + offset) % visited.length]) {
                 visited[(indeksi + offset) % visited.length] = false; //Varmistetaan että samaa siirtoa ei lasketa moneen kertaan
-                
+
                 if (PlacementHandler.onkoLaillinenSiirto(lauta, uusiX, uusiY)) {
                     lapsiJono.add(new Node(lauta, uusiX, uusiY));
                     pisteita++;
@@ -356,7 +359,7 @@ public class Node {
         }
         this.children = new NodenLapset(pisteet);
     }
-    
+
     public void bayesExpand(Pelilauta lauta) {
         double[] values = new double[Pelilauta.getKoko() * Pelilauta.getKoko()];
         int[] strengths = new int[values.length];
@@ -374,7 +377,7 @@ public class Node {
         Pelilauta testiLauta;
         double difference;
         int differenceInStrength;
-        for (int i = 0; i<values.length; i++) {
+        for (int i = 0; i < values.length; i++) {
             if (!PlacementHandler.onkoLaillinenSiirto(lauta, Pelilauta.toX(i), Pelilauta.toY(i))) {
                 continue;
             }
@@ -394,8 +397,7 @@ public class Node {
             newNode.raveVierailut = (int) Math.round(Math.log(strengthOfPrediction - differenceInStrength) * 1000);
             if (lauta.getTurn() == Pelilauta.MUSTA) {
                 newNode.raveVoitot = (int) Math.round(newNode.raveVierailut * (1 / (1 + Math.pow(Math.E, boardSum - difference))));
-            }
-            else {
+            } else {
                 newNode.raveVoitot = (int) Math.round(newNode.raveVierailut * (1 - (1 / (1 + Math.pow(Math.E, boardSum - difference)))));
             }
             if (1.0 * newNode.raveVoitot / newNode.raveVierailut > 0.44) {
@@ -408,20 +410,73 @@ public class Node {
         children.sort();
     }
 
-    /*private boolean lisaaJonoon(int simple, Pino<Node> lapsiJono, boolean[] visited) {
-        int x;
-        int y;
-        if (simple != -1) {
-            x = Pelilauta.toX(simple);
-            y = Pelilauta.toY(simple);
-            if (visited[simple]) {
-                lapsiJono.add(new Node(lauta, x, y));
-                visited[simple] = false;
-                return true;
+    public double[] bayesExpand2(Pelilauta lauta, int max) {
+        this.children = new NodenLapset();
+        double[] values = new double[Pelilauta.getKoko() * Pelilauta.getKoko()];
+        double[] negatives = new double[values.length];
+        double sum;
+        Node node;
+        children.setMaxKoko(max);
+        int pattern;
+        int location;
+        for (int i = 0; i<values.length; i++) {
+            values[i] = 0;
+        }
+        for (int i = 0; i < Pelilauta.getKoko() * Pelilauta.getKoko(); i++) {
+            if (!PlacementHandler.onkoLaillinenSiirto(lauta, Pelilauta.toX(i), Pelilauta.toY(i))) {
+                continue;
+            }
+            pattern = Pattern.match(lauta, Pelilauta.toX(i), Pelilauta.toY(i));
+            if (lauta.getTurn() == Pelilauta.VALKEA) {
+                pattern = Pattern.swapColors(pattern);
+            }
+            
+            for (int k = -1; k < 2; k++) {
+                for (int l = -1; l < 2; l++) {
+                    if (Pelilauta.onLaudalla(Pelilauta.toX(i) + k, Pelilauta.toY(i) + l)) {
+                        location = Pelilauta.toSimple(Pelilauta.toX(i) + k, Pelilauta.toY(i) + l);
+                        //values[location] += Math.log(Pattern.patternMovePredictions(pattern, k, l)) - Math.log(Pattern.patternMovePredictions(pattern, k, l));
+                        values[location] += Pattern.patternMovePredictions(pattern, k, l);
+                    }
+                }
             }
         }
-        return false;
-    }*/
+        sum = 0;
+        for (int i = 0; i < Pelilauta.getKoko() * Pelilauta.getKoko(); i++) {
+            if (!PlacementHandler.onkoLaillinenSiirto(lauta, Pelilauta.toX(i), Pelilauta.toY(i))) {
+                continue;
+            }
+            sum += values[i];
+        }
+        
+        for (int i = 0; i <values.length; i++) {
+            if (!PlacementHandler.onkoLaillinenSiirto(lauta, Pelilauta.toX(i), Pelilauta.toY(i))) {
+                continue;
+            }
+            values[i] = values[i] / (sum);
+            node = new Node(lauta, Pelilauta.toX(i), Pelilauta.toY(i));
+            node.raveVierailut += 5000 * values[i];
+            node.raveVoitot += (node.raveVierailut * 56) / 100;
+            this.children.addNode(node);
+        }
+        children.sort();
+        return values;
+    }
+
+    /*private boolean lisaaJonoon(int simple, Pino<Node> lapsiJono, boolean[] visited) {
+     int x;
+     int y;
+     if (simple != -1) {
+     x = Pelilauta.toX(simple);
+     y = Pelilauta.toY(simple);
+     if (visited[simple]) {
+     lapsiJono.add(new Node(lauta, x, y));
+     visited[simple] = false;
+     return true;
+     }
+     }
+     return false;
+     }*/
     protected boolean isLeaf() {
         if (children == null) {
             return true;
@@ -454,6 +509,50 @@ public class Node {
         return children.getNode(highestIndex);
     }
 
+    public static Pelilauta bayesSimulate(Pelilauta lauta, int[] amafTaulu) {
+        double probability;
+        double maxProbability;
+        int maxSimple;
+        while (lauta.getMoveNumber() < 700) {
+            maxSimple = -1;
+            maxProbability = -1;
+            for (int i = 0; i < Pelilauta.getKoko() * Pelilauta.getKoko(); i++) {
+                if (!PlacementHandler.onkoLaillinenSiirto(lauta, Pelilauta.toX(i), Pelilauta.toY(i))
+                        || PlacementHandler.tuhoaakoSiirtoOmanSilman(lauta, Pelilauta.toX(i), Pelilauta.toY(i))) {
+                    continue;
+                }
+                probability = 0;
+                for (int k = -1; k < 2; k++) {
+                    for (int l = -1; l < 2; l++) {
+                        if (Pelilauta.onLaudalla(Pelilauta.toX(i) + k, Pelilauta.toY(i) + l)) {
+                            if (lauta.getTurn() == Pelilauta.MUSTA) {
+                                probability += Pattern.patternMovePredictions(Pattern.match(lauta, Pelilauta.toX(i) + k, Pelilauta.toY(i) + l), -k, -l);
+                            } else {
+                                probability += Pattern.patternMovePredictions(Pattern.swapColors(Pattern.match(lauta, Pelilauta.toX(i) + k, Pelilauta.toY(i) + l)), -k, -l);
+                            }
+                        }
+                    }
+                }
+                if (probability > maxProbability) {
+                    maxSimple = i;
+                }
+            }
+            if (maxSimple == -1) {
+                if (lauta.isPassedOnLastMove()) {
+                    break;
+                }
+                PlacementHandler.pass(lauta);
+                continue;
+            }
+            PlacementHandler.pelaaSiirto(lauta, Pelilauta.toX(maxSimple), Pelilauta.toY(maxSimple));
+            if (amafTaulu[maxSimple] == 0) {
+                amafTaulu[maxSimple] = lauta.getTurn();
+            }
+        }
+        //System.err.println("Siirtoja: " + lauta.getMoveNumber());
+        return lauta;
+    }
+
     /**
      * simuloi pelin. Pelaa sarjan siirtoja.
      *
@@ -479,7 +578,7 @@ public class Node {
                 if (CriticalPointObserver.getSelfAtariMove() != -1) {
                     x = Pelilauta.toX(CriticalPointObserver.getSelfAtariMove());
                     y = Pelilauta.toY(CriticalPointObserver.getSelfAtariMove());
-                    
+
                     if (!PlacementHandler.tuhoaakoSiirtoOmanSilman(lauta, x, y)) {
                         if (amafTaulu[Pelilauta.toSimple(x, y)] == 0) {
                             amafTaulu[Pelilauta.toSimple(x, y)] = lauta.getTurn();
@@ -514,22 +613,22 @@ public class Node {
         }
         //GoAI.piirraLauta(lauta);
         /*String debug = "\n";
-        for (int j = Pelilauta.getKoko() - 1; j >= 0; j--) {
-            debug += "   ";
-            for (int i = 0; i < Pelilauta.getKoko(); i++) {
-                if (lauta.getRisteys(i, j) == Pelilauta.MUSTA) {
-                    debug += " " + "X" + " ";
-                }
-                else if (lauta.getRisteys(i, j) == Pelilauta.VALKEA) {
-                    debug += " " + "O" + " ";
-                }
-                else {
-                    debug += " " + "." + " ";
-                }
-            }
-            debug += "\n";
-        }
-        GTP.logger.info(debug);*/
+         for (int j = Pelilauta.getKoko() - 1; j >= 0; j--) {
+         debug += "   ";
+         for (int i = 0; i < Pelilauta.getKoko(); i++) {
+         if (lauta.getRisteys(i, j) == Pelilauta.MUSTA) {
+         debug += " " + "X" + " ";
+         }
+         else if (lauta.getRisteys(i, j) == Pelilauta.VALKEA) {
+         debug += " " + "O" + " ";
+         }
+         else {
+         debug += " " + "." + " ";
+         }
+         }
+         debug += "\n";
+         }
+         GTP.logger.info(debug);*/
         return lauta;
     }
 
@@ -538,7 +637,7 @@ public class Node {
         int y;
         double pisteet = -1 * GoAI.simulateKomi; // Alkuarvo on komi, valkealle annettava etu.
         /*
-        Stone scoring + silmien lasku
+         Stone scoring + silmien lasku
          */
         int kivenvari;
         for (int i = 0; i < Pelilauta.getKoko() * Pelilauta.getKoko(); i++) {
@@ -575,23 +674,6 @@ public class Node {
             return 1;
         }
         return -1;
-    }
-
-    public static double voitonTodennakoisyys(Node node) {
-        if (node.getTurn() == Pelilauta.MUSTA) {
-            return 1.0 * GoAI.actuaSimulateWins / GoAI.actualSimulateGames;
-        }
-        return 1.0 * (GoAI.actualSimulateGames - GoAI.actuaSimulateWins) / GoAI.actualSimulateGames;
-        /*double voitot = 1.0;
-        double vierailut = 1.0;
-        if (node.children == null) {
-            return 1;
-        }
-        for (int i = 0; i < node.children.getKoko(); i++) {
-            vierailut += node.children.getNode(i).vierailut;
-            voitot += node.children.getNode(i).voitot;
-        }
-        return voitot / vierailut;*/
     }
 
 }

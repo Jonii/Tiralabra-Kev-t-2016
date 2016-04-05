@@ -23,9 +23,6 @@ public class GoAI {
 
     static Pelilauta lauta;
     static int simulaatioita;
-    static Node diagnostiikkaNode;
-    static int[][] apulautaVierailut;
-    static int[][] apulautaVoitot;
     static int passauksia;
     static int resign = 0;
     public static int simulaatioCount = 4000;
@@ -95,6 +92,7 @@ public class GoAI {
             i++;
         }
         
+        
         logger = Logger.getLogger("goailog");
         logger.setUseParentHandlers(false);
         
@@ -124,47 +122,15 @@ public class GoAI {
         } else {
 
             Scanner reader = new Scanner(System.in);
-            /*System.out.print("Anna laudan koko: ");
             
-            lauta = new Pelilauta(reader.nextInt());
-            System.out.println("");
-
-            reader.nextLine();*/
-            //System.out.print("Tulostetaanko diagnostiikkalauta(k/E): ");
-            //if (reader.nextLine().compareToIgnoreCase("k") == 0) {
-
-            /* Asetetaan sopivat alkuarvot Tietokone vs Ihminen -matsille:
-                6.5 komi, 9x9 laudankoko. Diagnostiikkataulu pois näkyvistä.
-             */
             lauta = new Pelilauta(9);                     
             Pelilauta.setKomi(6.5);
-            PlacementHandler.pelaaSiirto(lauta, 3, 3); // ________
-            PlacementHandler.pelaaSiirto(lauta, 3, 4); //|
-            PlacementHandler.pelaaSiirto(lauta, 4, 4); //|
-            PlacementHandler.pass(lauta);              //|
-            PlacementHandler.pelaaSiirto(lauta, 2, 4); //|     X
-                                                       //|   X O X
-            /*Pelilauta simuLauta;
-            int voitot = 1;
-            int simut = 1;
-            int[] amafTaulu = new int[9*9];
-            while (true) {
-                simuLauta = lauta.kopioi();
-                Node.simulate(simuLauta, amafTaulu);
-                if (Node.simulScore(simuLauta) > 0) voitot++;
-                simut++;
-                System.out.println("Voittoprosentti: " + (1.0 * voitot / simut));
-            }*/
             
-            if (true) {
-                apulautaVierailut = new int[lauta.getKoko()][lauta.getKoko()];
-                apulautaVoitot = new int[lauta.getKoko()][lauta.getKoko()];
-            }
 
             while (resign == 0) {
                 simulaatioita = 0;
 
-                piirraLauta(lauta);
+                /*piirraLauta(lauta);
                 System.out.print("Tietokone miettii...");
                 GTP.decideSimulationKomi(lauta); 
                 pelaaSiirtoKoneelle();
@@ -172,18 +138,24 @@ public class GoAI {
                 System.out.println("Suoritettu " + simulaatioita + " simulaatiota");
                 if (koneVastaanKone) {
                     continue; //uncomment this if you want to play yourself
-                }
+                }*/
                 piirraLauta(lauta);
-                if (lauta.getTurn() == Pelilauta.MUSTA) {
+                /*if (lauta.getTurn() == Pelilauta.MUSTA) {
                     System.out.println("Mustan vuoro");
                 } else {
                     System.out.println("Valkean vuoro");
-                }
+                }*/
                 System.out.print("Anna seuraava siirto: ");
                 do {
                     komento = reader.nextLine();
-                    x = GTP.readFirstCoord(komento);
-                    y = GTP.readSecondCoord(komento);
+                    if (komento.startsWith("black")) {
+                        lauta.setTurn(Pelilauta.MUSTA);
+                    }
+                    else {
+                        lauta.setTurn(Pelilauta.VALKEA);
+                    }
+                    x = GTP.readFirstCoord(komento.substring(6));
+                    y = GTP.readSecondCoord(komento.substring(6));
                 } while (!PlacementHandler.onkoLaillinenSiirto(lauta, x, y));
 
                 PlacementHandler.pelaaSiirto(lauta, x, y);
@@ -199,23 +171,33 @@ public class GoAI {
 
     public static void piirraLauta(Pelilauta lauta) {
         System.out.println("passauksia: " + passauksia);
+        double boardSum = 0;
+        double probability = 0;
+        for (int i = 0; i < Pelilauta.getKoko() * Pelilauta.getKoko(); i++) {
+            boardSum += Pattern.valueOf(Pattern.match(lauta, Pelilauta.toX(i), Pelilauta.toY(i)));
+        }
+        double[] normalisoidut = new Node().bayesExpand2(lauta, 5);
+        System.out.println("Mustan voiton todennäköisyys on " + (1 / (1 + Math.pow(Math.E, boardSum))));
         for (int j = lauta.getKoko() - 1; j >= 0; j--) {
             System.out.format("%2d", (j + 1));
             System.out.print("|");
 
             for (int i = 0; i < lauta.getKoko(); i++) {
                 if (lauta.getRisteys(i, j) == Pelilauta.MUSTA) {
-                    System.out.print(" X ");
+                    System.out.print("   X   ");
                 } else if (lauta.getRisteys(i, j) == Pelilauta.VALKEA) {
-                    System.out.print(" O ");
+                    System.out.print("   O   ");
                 } else {
-                    System.out.print(" . ");
-                }
-            }
-
-            if (apulautaVierailut != null) {
-                for (int i = 0; i < lauta.getKoko(); i++) {                 //aputaulu diagnostiikkaa varten
-                    System.out.format("(%4d/%5d)", apulautaVoitot[i][j], apulautaVierailut[i][j]);
+                     System.out.format(" %4.2f%% ", (100*normalisoidut[Pelilauta.toSimple(i, j)]));
+                    /*probability = 0;
+                    for (int k = -1; k<2; k++) {
+                        for (int l = -1; l<2; l++) {
+                            if (Pelilauta.onLaudalla(k+i, l+j)) {
+                                probability += Pattern.patternMovePredictions(Pattern.match(lauta, k+i, l+j), k, l);
+                            }
+                        }
+                    }
+                    System.out.format("%2.2f%%", probability);*/
                 }
             }
             System.out.println();
@@ -229,7 +211,7 @@ public class GoAI {
             if (i == 8) {
                 continue;
             }
-            System.out.print(" " + ((char) (i + 'A')) + " ");
+            System.out.print("   " + ((char) (i + 'A')) + "   ");
         }
         if (lauta.isPassedOnLastMove() && lauta.getMoveNumber() > 1) {
             System.out.print("Passaus");
@@ -242,62 +224,17 @@ public class GoAI {
      * Pelaa siirron tietokoneelle. Päivittää siinä sivussa myös
      * diagnostiikkataulua jonka avulla voi kartoittaa
      */
-    private static void pelaaSiirtoKoneelle() {
-        Node root = new Node();
-        root.setTurn(lauta.getTurn());
+    private static void pelaaSiirtoKoneelle() {        
+        Node uusiNode = genmove(lauta, simulaatioita);
 
-        long now = System.currentTimeMillis();
-        int miettimisAika = 22500;
-        int n = 1;
-        while (System.currentTimeMillis() < now + miettimisAika) {
-            root.selectAction(lauta);
-            simulaatioita++;
-            if (System.currentTimeMillis() > now + (n * miettimisAika) / 10) {
-                System.out.print(".");
-                n++;
-            }
-        }
-        int x, y;
-        Node uusiNode = root.annaValinta();
-
-        if (uusiNode == null) {
-            PlacementHandler.pass(lauta);
-            return;
-        }
-
-        x = uusiNode.getX();
-        y = uusiNode.getY();
+        int x = uusiNode.getX();
+        int y = uusiNode.getY();
 
         if (1.0 * uusiNode.voitot / uusiNode.vierailut < 0.15) {
             resign = lauta.getTurn();
         }
 
         PlacementHandler.pelaaSiirto(lauta, x, y);
-
-        if (apulautaVierailut != null) {
-            diagnostiikkaNode = root;
-            apulautaVierailut = new int[lauta.getKoko()][lauta.getKoko()];
-            apulautaVoitot = new int[lauta.getKoko()][lauta.getKoko()];
-            passauksia = 0;
-            int length = 0;
-            if (diagnostiikkaNode != null) {
-                length = diagnostiikkaNode.children.getKoko();
-            }
-
-            for (int i = 0; i < length; i++) {
-                x = diagnostiikkaNode.children.getNode(i).getX();
-                y = diagnostiikkaNode.children.getNode(i).getY();
-                if ((x == -1) && (y == -1)) {
-                    passauksia++;
-                } else {
-                    apulautaVierailut[x][y] = diagnostiikkaNode.children.getNode(i).raveVierailut;
-                    apulautaVoitot[x][y] = diagnostiikkaNode.children.getNode(i).raveVoitot;
-                    //apulautaVierailut[x][y] = diagnostiikkaNode.children.getNode(i).vierailut;
-                    //apulautaVoitot[x][y] = diagnostiikkaNode.children.getNode(i).voitot;
-                }
-            }
-        }
-
     }
 
     public static boolean[] decideDead(Pelilauta lauta) {
@@ -480,6 +417,24 @@ public class GoAI {
             }
         }
         return pisteet;
+    }
+
+    public static double voitonTodennakoisyys(int pelaaja) {
+        if (pelaaja == Pelilauta.MUSTA) {
+            return 1.0 * GoAI.actuaSimulateWins / GoAI.actualSimulateGames;
+        }
+        return 1.0 * (GoAI.actualSimulateGames - GoAI.actuaSimulateWins) / GoAI.actualSimulateGames;
+    }
+
+    public static Node genmove(Pelilauta lauta, int simulaatioita) throws IllegalStateException {
+        Node root = new Node();
+        root.setTurn(lauta.getTurn());
+        GTP.decideSimulationKomi(lauta);
+        while (simulaatioita < GoAI.simulaatioCount) {
+            root.selectAction(lauta);
+            simulaatioita++;
+        }
+        return root.annaValinta();
     }
 
 }
